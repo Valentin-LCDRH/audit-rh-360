@@ -284,10 +284,8 @@
       title: 'Besoin d\'approfondir certains sujets ?',
       text: 'Le pré-diagnostic permet d\'identifier vos principales priorités. Un consultant RH senior peut approfondir l\'analyse, sécuriser les points identifiés et construire avec vous une roadmap adaptée à votre organisation.',
       cta: 'Échanger sur mon audit RH',
-      /* Destination MOCKÉE en Phase 2 (aucune redirection réelle). Chemin définitif à renseigner avant
-         la Phase 4/5 ; comme pour le simulateur RPO, seul le chemin sera utilisé, sur le domaine visité. */
-      url: '#mock-rendez-vous',
-      mock: true
+      /* Destination : `meeting_path` dans integrations.js (vide = CTA simulé). */
+      cta_id: 'meeting'
     },
 
     /* ------------------------------------------------------------------

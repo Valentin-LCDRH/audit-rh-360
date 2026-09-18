@@ -26,7 +26,8 @@
    * Email « Votre diagnostic RH 360° » (gabarit Brevo, HTML compatible messagerie :
    * tableaux + styles en ligne). Utile en lui-même et transférable (DG, DAF…).
    * ------------------------------------------------------------------ */
-  function buildReportEmail(res, payload, cfg) {
+  function buildReportEmail(res, payload, cfg, opts) {
+    var meetingHref = (opts && opts.meeting_url) || '#';
     var R = cfg.R, V = '#5E17EB', INK = '#131214', INK2 = '#5E5963', LINE = '#E9E4F0', OR = '#C0661A';
     var ctx = res.context;
     var h = [];
@@ -99,7 +100,7 @@
     h.push('<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;background:#F7F3FE;border-radius:10px"><tr><td style="padding:20px">' +
       '<div style="font-size:16px;font-weight:700;color:' + INK + '">' + esc(R.commercial_cta.title) + '</div>' +
       '<div style="font-size:14px;color:' + INK2 + ';margin:6px 0 14px">' + esc(R.commercial_cta.text) + '</div>' +
-      '<a href="' + esc(R.commercial_cta.url) + '" style="display:inline-block;background:' + V + ';color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 18px;border-radius:8px">' + esc(R.commercial_cta.cta) + '</a>' +
+      '<a href="' + esc(meetingHref) + '" style="display:inline-block;background:' + V + ';color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 18px;border-radius:8px">' + esc(R.commercial_cta.cta) + '</a>' +
       '</td></tr></table>');
     h.push('</td></tr></table></div>');
     return { subject: 'Votre diagnostic RH 360°', html: h.join('') };

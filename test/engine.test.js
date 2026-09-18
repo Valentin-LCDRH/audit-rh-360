@@ -483,6 +483,12 @@
     ok(E.questionsFor(CTX50, reviewed).some(function (q) { return q.id === 'Q25'; }), 'règle relue : question active');
   });
 
+  test('Pré-production : règles vérifiées actives, règles en attente toujours inactives', function () {
+    var pre = E.withOverrides(CFG, { release: { mode: 'preprod', require_legal_review: true } });
+    ok(E.questionsFor(CTX50, pre).some(function (q) { return q.id === 'Q25'; }), 'règle vérifiée active en pré-production');
+    ok(E.questionsFor(CTX50, pre).every(function (q) { return q.id !== 'Q24' && q.id !== 'C6'; }), 'Q24 et C6 restent inactives');
+  });
+
   test('Payload : convention collective normalisée et forfait jours', function () {
     var ctx = ccnCtx('1486', { forfait_jours: 'yes' });
     var p = E.buildPayload({ result: E.evaluate(ctx, {}, FJ_ON), context: ctx }, FJ_ON);

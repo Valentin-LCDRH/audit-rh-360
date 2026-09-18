@@ -1,7 +1,11 @@
 # Audit RH 360° — Le Club des RH
 
 Pré-diagnostic RH gratuit (lead magnet). Brief complet : conversation de cadrage du 2026-09-18.
-Phase courante : **Phase 2 FIGÉE** (2026-09-18) jusqu'aux retours des tests utilisateurs
+**Contenu fonctionnel V1 FIGÉ (2026-09-18)** : aucune question, CCN ni fonctionnalité sans demande explicite ;
+signaler tout besoin de modification du contenu avant d'agir. Étape : pré-production privée (docs/DEPLOIEMENT.md),
+3 gates avant ouverture publique : relecture juridique de toutes les règles `legal_flag`, 3-5 tests utilisateurs
+(dont mobile), validation du parcours de conversion et des intégrations (docs/INTEGRATIONS.md).
+Historique : Phase 2 FIGÉE (2026-09-18) jusqu'aux retours des tests utilisateurs
 (`docs/GUIDE-TESTS-UTILISATEURS.md`). Ne rien optimiser avant mesure réelle ; ordre d'arbitrage :
 conserver → condenser → rendre conditionnel → supprimer en dernier recours. Ensuite : Phase 3 (designer). Ne pas brancher Webflow / Zapier / Pipedrive / Brevo avant validation.
 Arbitrages Phase 1 (2026-09-18) : red flag = réponse + obligation applicable ; poids 3 + B = priorité 2

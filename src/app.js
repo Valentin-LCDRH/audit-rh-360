@@ -15,8 +15,12 @@
     return;
   }
 
-  var BASE = E.defaultConfig(), R = BASE.R;
-  var DEV = mount.getAttribute('data-arh-dev') === 'true' || /[?&]test=1\b/.test(root.location.search);
+  /* Environnement : 'production' par défaut (garde-fou juridique actif : règles sans relecture
+   * désactivées). 'preprod' uniquement si la page le déclare (data-arh-env="preprod"). */
+  var ENV = mount.getAttribute('data-arh-env') === 'preprod' ? 'preprod' : 'production';
+  var BASE = E.withOverrides(E.defaultConfig(), { release: { mode: ENV, require_legal_review: true } }), R = BASE.R;
+  var I = root.ARH_INTEGRATIONS;
+  var DEV = mount.getAttribute('data-arh-dev') === 'true' || /[?&]test=1\b/.test(root.location.search) || /(^|[#&])test\b/.test(root.location.hash);
   var HERO = R.hero;
 
   /* ================================================================
@@ -312,6 +316,7 @@
           ' value="' + esc(contactDraft[f.id] || '') + '"' + (err ? ' aria-invalid="true" aria-describedby="arh-e-' + f.id + '"' : '') + ' required>' +
           (err ? '<div class="arh-error" id="arh-e-' + f.id + '">' + esc(err) + '</div>' : '') + '</div>';
       }).join('') +
+      (formErrors._send ? '<p class="arh-error arh-full" role="alert">' + esc(formErrors._send) + '</p>' : '') +
       '<div class="arh-full"><button class="arh-btn" type="submit"' + (sending ? ' disabled' : '') + '>' + (sending ? 'Envoi en cours…' : esc(F.cta)) + '</button>' +
       '<p class="arh-small" style="margin:10px 0 0">' + esc(F.privacy_note) + ' <a class="arh-link" style="font-weight:500" href="' + esc(F.privacy_url) + '" target="_blank" rel="noopener">Politique de confidentialité</a></p></div>' +
       '</form></section>';
@@ -321,11 +326,11 @@
     var C = R.commercial_cta;
     return '<section class="arh-card" id="arh-done"><div class="arh-done-mark"><span aria-hidden="true">✓</span> Votre rapport est en route</div>' +
       '<p class="arh-muted" style="margin:10px 0 0">Il contient le détail de vos réponses, les sujets à sécuriser et votre roadmap RH complète. Vous pouvez le transférer à votre direction.</p>' +
-      (M && M.active ? '<p class="arh-small" style="margin:10px 0 0">Maquette de test : aucun email n\'est envoyé. <button class="arh-link" data-act="preview-email">Voir l\'aperçu du rapport</button></p>' : '') +
+      (I.isMock() ? '<p class="arh-small" style="margin:10px 0 0">Maquette de test : aucun email n\'est envoyé. <button class="arh-link" data-act="preview-email">Voir l\'aperçu du rapport</button></p>' : '') +
       '</section>' +
       '<section class="arh-card arh-cta-block"><h3 class="arh-h3" style="font-size:22px">' + esc(C.title) + '</h3>' +
       '<p class="arh-muted" style="margin:8px 0 0">' + esc(C.text) + '</p>' +
-      '<a class="arh-btn" data-act="meeting" href="' + esc(C.url) + '">' + esc(C.cta) + ' <span aria-hidden="true">→</span></a>' +
+      '<a class="arh-btn" data-act="meeting" href="' + esc(I.meetingUrl() || '#rendez-vous') + '">' + esc(C.cta) + ' <span aria-hidden="true">→</span></a>' +
       '<p class="arh-small" data-meeting-note hidden style="color:#CFCAD6;margin:12px 0 0">Maquette : destination du rendez-vous à définir avant la Phase 4/5.</p></section>';
   }
 
@@ -447,11 +452,13 @@
     var payload = E.buildPayload({ result: res, context: S.context, contact: contactDraft, utm: UTM,
       meta: { audit_id: S.audit_id, completed_at: S.completed_at || new Date().toISOString(), page_url: root.location.href.split('#')[0],
         metrics: E.metricsSummary(S.metrics) } }, C);
-    var email = M.buildReportEmail(res, payload, C);
+    var email = M.buildReportEmail(res, payload, C, { meeting_url: I.meetingUrl() });
     lastEmail = email; lastPayload = payload;
     sending = true; render();
-    M.submitReport(payload, email).then(function () {
-      sending = false; S.converted = true; save();
+    I.submitReport(payload, email).then(function (r) {
+      sending = false;
+      if (!r || !r.ok) { formErrors = { _send: 'L\'envoi n\'a pas abouti. Vérifiez votre connexion puis réessayez.' }; return render(); }
+      S.converted = true; save();
       track('report_requested', resultProps(res));
       render();
       var done = view.querySelector('#arh-done'); if (done) done.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -508,8 +515,8 @@
     else if (act === 'restart') { drop('localStorage', R.storage.progress_key); S = freshState(); saved = null; go('intro'); }
     else if (act === 'preview-email') previewEmail();
     else if (act === 'meeting') {
-      track('meeting_cta_clicked', { lead_interest: E.evaluate(S.context, S.answers, cfg()).lead_interest.join(',') });
-      if (R.commercial_cta.mock) { e.preventDefault(); var n = view.querySelector('[data-meeting-note]'); if (n) n.hidden = false; }
+      track('meeting_cta_clicked', resultProps(E.evaluate(S.context, S.answers, cfg())));   // jamais de tag commercial interne dans GA4
+      if (!I.meetingUrl()) { e.preventDefault(); var n = view.querySelector('[data-meeting-note]'); if (n) n.hidden = false; }
     }
   });
   mount.addEventListener('submit', function (e) {

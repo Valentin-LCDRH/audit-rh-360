@@ -1,0 +1,29 @@
+<title>Audit RH 360°</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="src/audit.css">
+<style>
+  /* Page de pré-production : charte Le Club des RH, thème clair assumé (identique au site). */
+  :root { --page-bg: #FEFCFF; --page-ink: #131214; --page-muted: #8E8A92; --page-line: #E9E4F0; }
+  html { background: var(--page-bg); }
+  body { background: var(--page-bg); color: var(--page-ink); font-family: "Encode Sans", Arial, Helvetica, sans-serif; font-size: 16px; padding-inline: 16px; padding-block: 16px 96px; }
+  .pp-bar { max-width: 760px; margin: 0 auto 12px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13px; color: var(--page-muted); }
+  .pp-bar b { color: #5E17EB; font-weight: 600; }
+</style>
+
+<p class="pp-bar"><b>Pré-production</b><span>Version de test privée · aucun email n'est envoyé</span></p>
+<div id="arh-audit" data-arh-env="preprod"></div>
+
+<script src="src/config/legal-rules.js"></script>
+<script src="src/config/questions.js"></script>
+<script src="src/config/ccn-modules.js"></script>
+<script src="src/config/scoring.js"></script>
+<script src="src/data/ccn-list.js"></script>
+<script src="src/engine.js"></script>
+<script src="src/mocks.js"></script>
+<script src="src/config/integrations.js"></script>
+<script src="src/integrations.js"></script>
+<script src="src/profiles.js"></script>
+<script src="src/app.js"></script>

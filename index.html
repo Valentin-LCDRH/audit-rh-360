@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Audit RH 360° | Le Club des RH</title>
   <meta name="description" content="Évaluez vos pratiques RH, identifiez vos principales zones de risque et obtenez une roadmap personnalisée de vos priorités.">
-  <meta name="robots" content="noindex">
+  <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
   <main class="demo-wrap">
         <!-- ===== Point de montage (futur Embed Webflow) ===== -->
     <!-- Outils de test : ajouter ?test=1 à l'URL (masqués par défaut pour les tests utilisateurs). -->
-    <div id="arh-audit"></div>
+    <div id="arh-audit" data-arh-env="preprod"></div>
   </main>
   <script src="src/config/legal-rules.js"></script>
   <script src="src/config/questions.js"></script>
@@ -30,6 +30,8 @@
   <script src="src/data/ccn-list.js"></script>
   <script src="src/engine.js"></script>
   <script src="src/mocks.js"></script>
+  <script src="src/config/integrations.js"></script>
+  <script src="src/integrations.js"></script>
   <script src="src/profiles.js"></script>
   <script src="src/app.js"></script>
 </body>
