@@ -32,6 +32,10 @@
       var hasIdcc = JSON.stringify(q.applicability || {}).indexOf('"field":"collective_agreement_idcc","in":["' + idcc + '"]') >= 0;
       if (!hasIdcc) errors.push('Question ' + q.id + ' : l\'applicabilité doit porter la condition d\'IDCC ' + idcc);
     });
+    (MOD[idcc].roadmap_groups || []).forEach(function (g) {
+      g.questions.forEach(function (qid) { if (!(MOD[idcc].questions || []).some(function (q) { return q.id === qid; })) errors.push('Module ' + idcc + ' : groupe ' + g.id + ' → question inconnue ' + qid); });
+      if (!g.title || !g.recommendation) errors.push('Module ' + idcc + ' : groupe ' + g.id + ' sans titre ou recommandation');
+    });
     if ((MOD[idcc].context_questions || []).length + (MOD[idcc].questions || []).length > 2)
       errors.push('Module ' + idcc + ' : plus de 2 questions (philosophie V1 : 1 à 2 contrôles discriminants)');
   });
@@ -155,7 +159,8 @@
     (function walk(o) {
       if (typeof o === 'string') t.push(o);
       else if (o && typeof o === 'object') Object.keys(o).forEach(function (k) { walk(o[k]); });
-    })([R.result_texts, R.disclaimer, R.lead_form, R.commercial_cta, R.reason_templates, R.hero]);
+    })([R.result_texts, R.disclaimer, R.lead_form, R.commercial_cta, R.reason_templates, R.hero,
+        Object.keys(MOD).map(function (k) { return (MOD[k].roadmap_groups || []).map(function (g) { return [g.title, g.recommendation, g.reason]; }); })]);
     return t;
   }
   visibleTexts().forEach(function (s) {

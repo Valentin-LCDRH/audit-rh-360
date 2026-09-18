@@ -13,12 +13,15 @@
  *   le scoring et le parcours ne changent pas.
  * - Une convention présente dans le sélecteur (ccn-list.js) n'a pas forcément de module.
  *
- * V1 : un seul module, Syntec (IDCC 1486), un seul sujet : le forfait annuel en jours.
+ * Périmètre V1 FIGÉ (2026-09-18) : Syntec (IDCC 1486) → forfait jours ; Métallurgie (IDCC 3248) →
+ * classification + minima. Aucune troisième convention sans validation.
+ * `roadmap_groups` (facultatif) : regroupe dans la roadmap des contrôles liés qui ressortent ensemble.
  */
 (function (root) {
   'use strict';
 
   var SYNTEC = { field: 'collective_agreement_idcc', in: ['1486'] };
+  var METALLURGIE = { field: 'collective_agreement_idcc', in: ['3248'] };
 
   root.ARH_CCN_MODULES = {
     version: '2026-09-18',
@@ -61,6 +64,60 @@
         ]
       }
 
+      ,
+
+      /* Métallurgie : 2 contrôles distincts (la réponse à l'un n'est jamais déduite de l'autre).
+         Aucune question préalable : la sélection de l'IDCC 3248 suffit. */
+      '3248': {
+        id: 'metallurgie',
+        label: 'Métallurgie',
+        context_questions: [],
+        questions: [
+          { id: 'CCN3248_CLASSIF', ccn_module: 'metallurgie', pillar: 'compliance', type: 'C', weight: 3, risk_level: 'eleve',
+            short_label: 'Classification conventionnelle des emplois',
+            action_title: 'Sécuriser la classification de vos emplois',
+            question: 'Vos emplois ont-ils été décrits, cotés et classés selon le système de classification prévu par la convention collective de la métallurgie ?',
+            help_text: 'La convention collective nationale de la métallurgie prévoit un système unique de classification fondé sur l\'emploi réellement tenu. Chaque emploi est décrit puis coté selon les critères conventionnels afin de déterminer sa classe et son groupe d\'emploi.',
+            allow_na: false,
+            legal_flag: true, legal_rule: ['LR_METALLURGIE_CLASSIFICATION'],
+            red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_METALLURGIE_CLASSIFICATION' }],
+            applicability: { all: [METALLURGIE] },
+            area_text: 'Votre réponse indique que la classification de certains emplois pourrait nécessiter une revue au regard du référentiel de la branche Métallurgie.',
+            recommendation_by_answer: {
+              partial: 'Vérifier la description des emplois réellement tenus, leur cotation selon les critères conventionnels et leur classement dans la classe et le groupe d\'emploi correspondants.',
+              no: 'Décrire les emplois réellement tenus, les coter selon les critères conventionnels, puis les classer dans la classe et le groupe d\'emploi correspondants.',
+              unknown: 'Vérifier si chaque emploi a été décrit, coté et classé selon le système de la convention collective, et comment le classement a été communiqué aux salariés.'
+            },
+            commercial_tags: ['metallurgie_classification', 'audit_rh'],
+            source: 'legal_rules', verified_at: null },
+
+          { id: 'CCN3248_MINIMA', ccn_module: 'metallurgie', pillar: 'compliance', type: 'C', weight: 3, risk_level: 'eleve',
+            short_label: 'Minima conventionnels',
+            action_title: 'Vérifier les minima conventionnels applicables',
+            question: 'Avez-vous vérifié que les rémunérations de vos salariés respectent les minima conventionnels applicables à leur classification et à leur organisation du temps de travail ?',
+            help_text: 'Les minima conventionnels applicables dépendent notamment de la classification des emplois. Certaines modalités d\'organisation du temps de travail peuvent avoir une incidence sur les montants applicables.',
+            allow_na: false,
+            legal_flag: true, legal_rule: ['LR_METALLURGIE_MINIMA'],
+            red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_METALLURGIE_MINIMA' }],
+            applicability: { all: [METALLURGIE] },
+            area_text: 'Vos réponses indiquent qu\'une vérification de la cohérence entre classification, organisation du temps de travail et rémunération pourrait être pertinente.',
+            recommendation_by_answer: {
+              partial: 'Contrôler que les rémunérations pratiquées respectent les minima correspondant aux situations des salariés concernés.',
+              no: 'Contrôler, salarié par salarié, que les rémunérations pratiquées respectent les minima correspondant à leur classement et à leur organisation du temps de travail.',
+              unknown: 'Identifier les minima applicables à chaque situation (classement, organisation du temps de travail) et les comparer aux rémunérations pratiquées.'
+            },
+            commercial_tags: ['metallurgie_minima', 'compensation', 'audit_rh'],
+            source: 'legal_rules', verified_at: null }
+        ],
+        /* Roadmap : si les deux sujets ressortent (réponse de score <= 50), une seule action regroupée.
+           Les constats (sujets à sécuriser, axes) restent distincts. */
+        roadmap_groups: [
+          { id: 'metallurgie_classif_minima', questions: ['CCN3248_CLASSIF', 'CCN3248_MINIMA'], max_score: 50,
+            title: 'Revoir classification et minima conventionnels',
+            recommendation: 'Sécuriser la description et la cotation des emplois, leur classement conventionnel, puis vérifier la cohérence des rémunérations avec les minima applicables.',
+            reason: 'Classification et minima conventionnels ressortent tous les deux : une revue commune évite de traiter deux fois le même sujet.' }
+        ]
+      }
     }
   };
 })(typeof window !== 'undefined' ? window : globalThis);

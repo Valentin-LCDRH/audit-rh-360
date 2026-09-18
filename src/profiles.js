@@ -40,7 +40,12 @@
     { id: 'syntec_forfait_jours', label: 'ESN Syntec · forfaits jours à vérifier',
       context: { respondent_role: 'head_of_people', company_size: '50-249', has_cse: 'yes', hr_organization: 'small_team', forfait_jours: 'yes' }, ccn: '1486',
       base: { C: 'yes', M: 'C' },
-      answers: { CCN1486_FJ: 'partial', Q16: 'B', Q19: 'B', Q31: 'B' } }
+      answers: { CCN1486_FJ: 'partial', Q16: 'B', Q19: 'B', Q31: 'B' } },
+
+    { id: 'pme_metallurgie', label: 'PME industrielle Métallurgie · classification et minima à revoir',
+      context: { respondent_role: 'daf', company_size: '50-249', has_cse: 'yes', hr_organization: 'leadership' }, ccn: '3248',
+      base: { C: 'yes', M: 'C' },
+      answers: { CCN3248_CLASSIF: 'partial', CCN3248_MINIMA: 'unknown', Q8: 'B', Q19: 'B', Q22: 'B', Q23: 'B' } }
   ];
 
   /* Contexte complet : convention normalisée via le moteur (jamais un libellé tapé à la main). */

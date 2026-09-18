@@ -4,7 +4,7 @@
  */
 (function () {
   'use strict';
-  var E = globalThis.ARH_ENGINE, P = globalThis.ARH_PROFILES, CFG = E.defaultConfig();
+  var root = globalThis, E = globalThis.ARH_ENGINE, P = globalThis.ARH_PROFILES, CFG = E.defaultConfig();
   var out = typeof print === 'function' ? print : function (s) { console.log(s); };
   var results = [];
 
@@ -328,15 +328,15 @@
     eq(r.red_flags.length, 0, 'aucun red flag issu de la contextualisation');
   });
 
-  test('CCN 4 — Autre convention (Métallurgie 3248) : aucune question Syntec, IDCC enregistré', function () {
-    var ctx = ccnCtx('3248', { forfait_jours: 'yes' });
-    eq(ctx.collective_agreement_idcc, '3248'); eq(ctx.collective_agreement_known, 'known');
+  test('CCN 4 — Autre convention (Banque 2120) : aucune question Syntec, IDCC enregistré', function () {
+    var ctx = ccnCtx('2120', { forfait_jours: 'yes' });
+    eq(ctx.collective_agreement_idcc, '2120'); eq(ctx.collective_agreement_known, 'known');
     ok(ctxIds(ctx).indexOf('forfait_jours') < 0 && !hasQ(ctx, 'CCN1486_FJ', FJ_ON), 'aucune question Syntec');
     eq(E.buildPayload({ result: E.evaluate(ctx, {}, FJ_ON), context: ctx }, FJ_ON).forfait_jours, '', 'forfait_jours vide hors module');
   });
 
   test('CCN 5 et 6 — « Je ne connais pas » / « Aucune convention » : audit standard, valeurs explicites', function () {
-    var u = ccnCtx('unknown'), n = ccnCtx('none'), std = E.questionsFor(ccnCtx('3248')).length;
+    var u = ccnCtx('unknown'), n = ccnCtx('none'), std = E.questionsFor(ccnCtx('2120')).length;
     eq([u.collective_agreement_known, u.collective_agreement_idcc], ['unknown', null]);
     eq([n.collective_agreement_known, n.collective_agreement_idcc], ['none', null]);
     ok(u.collective_agreement_label && n.collective_agreement_label && u.collective_agreement_label !== n.collective_agreement_label, 'libellés distincts');
@@ -356,7 +356,7 @@
   });
 
   test('CCN 8 — Contexte hors score, nombre de questions exact', function () {
-    var no = ccnCtx('1486', { forfait_jours: 'no' }), yes = ccnCtx('1486', { forfait_jours: 'yes' }), other = ccnCtx('3248');
+    var no = ccnCtx('1486', { forfait_jours: 'no' }), yes = ccnCtx('1486', { forfait_jours: 'yes' }), other = ccnCtx('2120');
     eq(ctxIds(no).length, ctxIds(other).length + 1, 'Syntec : +1 écran de contexte');
     eq(E.questionsFor(no, FJ_ON).length, E.questionsFor(other, FJ_ON).length, 'Syntec sans forfait : aucune question de plus');
     eq(E.questionsFor(yes, FJ_ON).length, E.questionsFor(other, FJ_ON).length + 1, 'Syntec avec forfait : +1 question');
@@ -380,6 +380,99 @@
     eq(E.evaluate(ctx, { CCN1486_FJ: 'no' }, prod).red_flags.length, 0, 'production sans relecture juridique : aucun red flag');
     var txt = JSON.stringify(on.roadmap).toLowerCase();
     ok(txt.indexOf('syntec') < 0, 'la restitution ne met pas en avant « Syntec »');
+  });
+
+  /* ================= Module Métallurgie (IDCC 3248) ================= */
+  var MET_ON = E.withOverrides(CFG, { rules: { LR_METALLURGIE_CLASSIFICATION: 'verified', LR_METALLURGIE_MINIMA: 'verified' } });
+  var MET_OFF = E.withOverrides(CFG, { rules: { LR_METALLURGIE_CLASSIFICATION: 'legal_validation_required', LR_METALLURGIE_MINIMA: 'legal_validation_required' } });
+  var METQ = ['CCN3248_CLASSIF', 'CCN3248_MINIMA'];
+  function metIds(ctx, cfg) { return E.questionsFor(ctx, cfg || MET_ON).filter(function (q) { return METQ.indexOf(q.id) >= 0; }).map(function (q) { return q.id; }); }
+  function tpeMet(extra) { var c = ccnCtx('3248'); c.company_size = '11-49'; c.has_cse = 'no'; c.hr_organization = 'leadership'; c.respondent_role = 'ceo'; Object.keys(extra || {}).forEach(function (k) { c[k] = extra[k]; }); return c; }
+  function withMet(a, cls, min) { var o = {}; Object.keys(a).forEach(function (k) { o[k] = a[k]; }); o.CCN3248_CLASSIF = cls; o.CCN3248_MINIMA = min; return o; }
+  var MATURE = P.answersFor(profile('tres_mature'), MET_ON);
+
+  test('Métallurgie 1 — IDCC 3248 : les 2 contrôles apparaissent, sans question préalable', function () {
+    eq(metIds(ccnCtx('3248')), METQ);
+    eq(ctxIds(ccnCtx('3248')).length, ctxIds(ccnCtx('2120')).length, 'aucun écran de contexte en plus');
+    ok(E.questionsFor(ccnCtx('3248'), MET_ON).filter(function (q) { return METQ.indexOf(q.id) >= 0; }).every(function (q) { return q.pillar === 'compliance' && q.weight === 3 && q.type === 'C'; }));
+    eq(metIds(ccnCtx('3248'), CFG).length, ['LR_METALLURGIE_CLASSIFICATION', 'LR_METALLURGIE_MINIMA'].filter(function (id) { return CFG.L.RULES[id].status === 'verified'; }).length, 'config actuelle : selon le statut des règles');
+  });
+
+  test('Métallurgie 2 — Autre IDCC, inconnu ou aucun : aucune question Métallurgie', function () {
+    ['2120', '1486', 'unknown', 'none'].forEach(function (c) { eq(metIds(ccnCtx(c, { forfait_jours: 'yes' })), [], c); });
+  });
+
+  test('Métallurgie 3 — Recherche « Métallurgie », « CCN Métallurgie », « IDCC 3248 », « 3248 »', function () {
+    ['Métallurgie', 'CCN Métallurgie', 'IDCC 3248', '3248', 'metallurgie', 'uimm'].forEach(function (q) {
+      var r = E.searchAgreements(q, CFG);
+      ok(r.length && r[0].idcc === '3248', '« ' + q + ' » → ' + (r[0] ? r[0].idcc : 'aucun résultat'));
+    });
+  });
+
+  test('Métallurgie 4 — Classification Oui + Minima Oui : aucun faux red flag, aucun tag', function () {
+    var r = E.evaluate(ccnCtx('3248'), withMet(MATURE, 'yes', 'yes'), MET_ON);
+    eq(r.red_flags.length, 0);
+    ok(r.lead_interest.indexOf('metallurgie_classification') < 0 && r.lead_interest.indexOf('metallurgie_minima') < 0);
+    ok(r.roadmap.every(function (a) { return METQ.indexOf(a.question_id) < 0 && !a.group_id; }));
+  });
+
+  test('Métallurgie 5 — Classification Non / Je ne sais pas : red flag seulement si la règle est validée', function () {
+    ['no', 'unknown'].forEach(function (ans) {
+      var on = E.evaluate(ccnCtx('3248'), withMet(MATURE, ans, 'yes'), MET_ON);
+      eq(on.red_flags.map(function (a) { return a.question_id; }), ['CCN3248_CLASSIF'], ans);
+      eq(on.red_flags[0].subject, 'Classification conventionnelle des emplois');
+      eq(on.roadmap[0].title, 'Sécuriser la classification de vos emplois');
+      eq(E.evaluate(ccnCtx('3248'), withMet(MATURE, ans, 'yes'), MET_OFF).red_flags.length, 0, ans + ' : règle non validée');
+    });
+    var prod = E.withOverrides(MET_ON, { release: { mode: 'production', require_legal_review: true } });
+    eq(E.evaluate(ccnCtx('3248'), withMet(MATURE, 'no', 'yes'), prod).red_flags.length, 0, 'production sans relecture');
+  });
+
+  test('Métallurgie 6 — Minima Non / Je ne sais pas : même logique', function () {
+    ['no', 'unknown'].forEach(function (ans) {
+      var on = E.evaluate(ccnCtx('3248'), withMet(MATURE, 'yes', ans), MET_ON);
+      eq(on.red_flags.map(function (a) { return a.question_id; }), ['CCN3248_MINIMA'], ans);
+      eq(on.roadmap[0].title, 'Vérifier les minima conventionnels applicables');
+      eq(E.evaluate(ccnCtx('3248'), withMet(MATURE, 'yes', ans), MET_OFF).red_flags.length, 0);
+    });
+    var r = E.evaluate(ccnCtx('3248'), withMet(MATURE, 'yes', 'partial'), MET_ON);
+    ok(r.lead_interest.indexOf('metallurgie_minima') >= 0 && r.lead_interest.indexOf('metallurgie_classification') < 0, 'tags indépendants');
+  });
+
+  test('Métallurgie 7 — Classification + minima faibles : constats distincts, une seule action regroupée', function () {
+    var r = E.evaluate(ccnCtx('3248'), withMet(MATURE, 'no', 'unknown'), MET_ON);
+    eq(r.red_flags.map(function (a) { return a.question_id; }), METQ, 'deux constats distincts');
+    var grouped = r.roadmap.filter(function (a) { return a.group_id === 'metallurgie_classif_minima'; });
+    eq(grouped.length, 1); eq(grouped[0].title, 'Revoir classification et minima conventionnels');
+    eq(grouped[0].related_questions, METQ); eq(grouped[0].priority, 1);
+    ok(r.roadmap.every(function (a) { return METQ.indexOf(a.question_id) < 0; }), 'plus d\'actions séparées');
+    var partial = E.evaluate(ccnCtx('3248'), withMet(MATURE, 'partial', 'partial'), MET_ON);
+    eq(partial.roadmap.filter(function (a) { return a.group_id; }).length, 1, 'regroupement aussi sur « Partiellement »');
+    var split = E.evaluate(ccnCtx('3248'), withMet(MATURE, 'no', 'yes'), MET_ON);
+    eq(split.roadmap.filter(function (a) { return a.group_id; }).length, 0, 'un seul sujet : pas de regroupement');
+    ok(['metallurgie_classification', 'metallurgie_minima', 'compensation', 'audit_rh'].every(function (t) { return r.lead_interest.indexOf(t) >= 0; }), 'tags : ' + r.lead_interest);
+  });
+
+  test('Métallurgie 8 — Intégration : score, nombre, progression, rapport, payload, tags', function () {
+    var met = tpeMet(), other = tpeMet(); var v = E.agreementContext('2120', CFG); Object.keys(v).forEach(function (k) { other[k] = v[k]; });
+    eq(E.questionsFor(met, MET_ON).length, E.questionsFor(other, MET_ON).length + 2, '+2 questions');
+    var qs = E.questionsFor(met, MET_ON), idx = qs.map(function (q) { return q.id; });
+    ok(idx.indexOf('CCN3248_CLASSIF') < idx.indexOf('Q5') && idx.indexOf('CCN3248_MINIMA') < idx.indexOf('Q5'), 'dans le pilier 1, avant le pilier 2');
+    eq(E.pillarsFor(met, MET_ON)[0].questions.length, E.pillarsFor(other, MET_ON)[0].questions.length + 2, 'progression du pilier 1');
+    var a = P.answersFor(profile('pme_fragile'), MET_ON);
+    var r = E.evaluate(met, withMet(a, 'partial', 'no'), MET_ON), r0 = E.evaluate(other, a, MET_ON);
+    eq(pillar(r, 'compliance').applicable_count, pillar(r0, 'compliance').applicable_count + 2, 'dénominateur du pilier');
+    ok(pillar(r, 'compliance').score !== pillar(r0, 'compliance').score, 'compté dans le score');
+    eq(r.questions_count, qs.length, 'total affiché exact');
+    var p = E.buildPayload({ result: r, context: met }, MET_ON);
+    eq([p.collective_agreement_idcc, p.collective_agreement_known], ['3248', 'known']);
+    ok(JSON.parse(p.answers_json).some(function (x) { return x.question_id === 'CCN3248_MINIMA' && x.answer_id === 'no'; }), 'réponses dans le payload');
+    ok(p.red_flags.indexOf('Minima conventionnels') >= 0, 'red flag dans le payload');
+    var mail = root.ARH_MOCKS ? root.ARH_MOCKS.buildReportEmail(r, p, MET_ON).html : null;
+    if (mail) ok(mail.indexOf('Minima conventionnels') >= 0 && mail.indexOf('IDCC 3248') >= 0, 'rapport email');
+    ok(r.lead_interest.indexOf('metallurgie_classification') >= 0 && r.lead_interest.indexOf('metallurgie_minima') >= 0, 'tags');
+    var free = E.evaluate(other, a, MET_ON);
+    ok(free.lead_interest.every(function (t) { return t.indexOf('metallurgie') < 0; }), 'aucun tag Métallurgie hors 3248');
   });
 
   test('Production : aucune règle réglementaire sans relecture juridique', function () {

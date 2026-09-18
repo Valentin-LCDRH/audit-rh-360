@@ -357,6 +357,28 @@
     var optimisations = veryGood ? roadmap.filter(function (a) { return a.priority >= 4; }) : roadmap.filter(function (a) { return a.priority === 5; });
     function itemById(id) { return items.filter(function (it) { return it.question_id === id; })[0]; }
 
+    /* ---- 6 bis. Regroupement d'actions liées (modules conventionnels, `roadmap_groups`) ----
+     * Les constats restent distincts (sujets à sécuriser, axes) ; seule la roadmap fusionne les
+     * actions quand TOUTES les questions du groupe ressortent (score <= max_score). */
+    Object.keys(cfg.MOD.modules || {}).forEach(function (k) {
+      (cfg.MOD.modules[k].roadmap_groups || []).forEach(function (g) {
+        var hits = roadmap.filter(function (a) {
+          var it = a.question_id && itemById(a.question_id);
+          return it && g.questions.indexOf(a.question_id) >= 0 && it.score <= g.max_score;
+        });
+        if (hits.length !== g.questions.length) return;
+        var first = hits[0], at = roadmap.indexOf(first);
+        var merged = {
+          priority: first.priority, tone: first.tone, question_id: null, group_id: g.id,
+          related_questions: hits.map(function (a) { return a.question_id; }),
+          pillar: first.pillar, pillar_label: first.pillar_label, title: g.title, subject: g.title,
+          description: g.reason, reason: g.reason, recommendation: g.recommendation, status: first.status, weight: first.weight
+        };
+        roadmap = roadmap.filter(function (a) { return hits.indexOf(a) < 0; });
+        roadmap.splice(Math.min(at, roadmap.length), 0, merged);
+      });
+    });
+
     /* ---- 7. Aperçu gratuit de la roadmap (jamais complété artificiellement) ---- */
     var DL = R.roadmap_display_limit, preview;
     if (veryGood) {
