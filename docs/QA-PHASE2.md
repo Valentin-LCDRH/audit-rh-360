@@ -107,3 +107,18 @@ RRH de PME, DRH d'ETI), dont au moins un sur mobile.
   dès la première question ; contrôle en pilier 1 (5/35) ; red flag + action « Vérifier le cadre de vos forfaits jours ».
 - Durée estimée (50-249, CSE) : autre convention ~10,7 min · Syntec sans forfait ~10,9 min (+1 écran) ·
   Syntec avec forfait ~11,2 min (+1 écran, +1 question).
+
+## Itération 6 (2026-09-18) — module Métallurgie (IDCC 3248), périmètre conventionnel V1 figé
+- Deux contrôles (C, poids 3, pilier 1), déclenchés uniquement par l'IDCC 3248, sans question préalable :
+  `CCN3248_CLASSIF` (classification des emplois) et `CCN3248_MINIMA` (minima conventionnels).
+- Règles `LR_METALLURGIE_CLASSIFICATION` (art. 59 à 69, 182) et `LR_METALLURGIE_MINIMA` (art. 138 à 143,
+  annexe 6-1 / avenant du 20/02/2026 étendu le 20/05/2026) : vérifiées sur Légifrance, points d'interprétation
+  en LEGAL_VALIDATION_REQUIRED (non bloquants en maquette, règles inactives en production sans relecture).
+- Roadmap : si les deux ressortent (score <= 50), une action regroupée « Revoir classification et minima
+  conventionnels » ; constats distincts. Tags internes `metallurgie_classification`, `metallurgie_minima`,
+  et `compensation` si les deux sont faibles.
+- Tests : 48 / 48 (Métallurgie 1 à 8 ; les 5 tests en échec du commit WIP passent une fois les règles documentées,
+  sans modification des tests).
+- Vérifié dans le navigateur : « CCN Métallurgie » → IDCC 3248 ; 36 questions annoncées ; contrôles en 5/36 et 6/36 ;
+  « Non » + « Je ne sais pas » → 2 sujets à sécuriser, 1 action regroupée en tête de roadmap.
+- Volume : +2 questions, aucun écran de contexte (1-10 : 28 · 11-49 : 32 · 50+ : 36) ; durée estimée +0,5 min.

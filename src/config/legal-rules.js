@@ -210,6 +210,44 @@
       notes: 'La question reste générique (« conditions prévues par votre convention collective ») : aucun seuil n\'est affiché ni utilisé pour déclencher un red flag. Le red flag repose sur la déclaration de l\'utilisateur (Non / Je ne sais pas). Points d\'interprétation listés dans LEGAL_VALIDATION_REQUIRED (non bloquants en maquette ; en production, la règle reste désactivée tant que legal_reviewed_at est vide).'
     },
 
+    LR_METALLURGIE_CLASSIFICATION: {
+      id: 'LR_METALLURGIE_CLASSIFICATION', status: 'verified',
+      title: 'Classification des emplois — Métallurgie (IDCC 3248)',
+      legal_rule: 'Convention collective nationale de la métallurgie du 7 février 2022 (étendue par arrêté du 14 décembre 2022, avenant du 11 juillet 2023 étendu le 12 décembre 2023), en vigueur depuis le 1er janvier 2024 (art. 182). Titre V : chaque emploi est décrit et classé sur la base de la réalité de l\'emploi tenu (art. 59) ; cotation selon six critères classants à dix degrés (complexité de l\'activité, connaissances, autonomie, contribution, encadrement/coopération, communication — art. 60 et 61), donnant 18 classes et 9 groupes (art. 62) ; l\'employeur établit une fiche descriptive de l\'emploi avant la cotation et la communique au salarié (art. 63.1) ; à la première application puis à l\'embauche, il notifie par écrit à chaque salarié le classement de son emploi ; le salarié peut demander des explications sous un mois, l\'employeur répond sous un mois en indiquant le degré retenu pour chaque critère (art. 63.2) ; consultation du CSE sur les modalités de mise en œuvre à partir de 50 salariés (art. 63.3) ; la première application ne peut réduire la rémunération annuelle totale brute (art. 69).',
+      applicability: 'Entreprises appliquant la convention collective nationale de la métallurgie (IDCC 3248), sélectionnée par son IDCC.',
+      applicability_condition: { field: 'collective_agreement_idcc', in: ['3248'] },
+      periodicity: 'À la première application (1er janvier 2024), à chaque embauche et à chaque évolution significative et durable de l\'emploi (art. 63.2.3) ; fiche réexaminée lors de l\'entretien professionnel (art. 63.1).',
+      articles: ['CCN métallurgie du 7 février 2022 (IDCC 3248), art. 59 à 64, 68, 69, 182'],
+      source: [
+        { label: 'Légifrance (KALI) — CCN de la métallurgie du 7 février 2022', url: 'https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000046993250' },
+        { label: 'Légifrance (KALI) — art. 60, critères classants', url: 'https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000046315184' },
+        { label: 'Légifrance (KALI) — art. 63.1, fiche descriptive (version avenant 2023)', url: 'https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000048437148' },
+        { label: 'Légifrance (KALI) — art. 63.2.1, notification du classement', url: 'https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000046315204' },
+        { label: 'Légifrance (JORF) — arrêté d\'extension du 14 décembre 2022', url: 'https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000046772742' },
+        { label: 'Légifrance (JORF) — arrêté d\'extension de l\'avenant du 11 juillet 2023', url: 'https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000048567712' }
+      ],
+      source_checked_at: '2026-09-18', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
+      notes: 'Question générique (décrits, cotés, classés) : aucun critère, degré ni seuil n\'est affiché ni utilisé pour un red flag, qui repose sur la déclaration de l\'utilisateur (Non / Je ne sais pas). Articles lus via un outil de synthèse : seuls les extraits cités sont textuels, à relire mot à mot. Points d\'interprétation dans LEGAL_VALIDATION_REQUIRED.'
+    },
+
+    LR_METALLURGIE_MINIMA: {
+      id: 'LR_METALLURGIE_MINIMA', status: 'verified',
+      title: 'Salaires minima hiérarchiques — Métallurgie (IDCC 3248)',
+      legal_rule: 'CCN de la métallurgie (IDCC 3248) : barème national unique de salaires minima hiérarchiques par classe d\'emploi (art. 138 ; barème en vigueur : annexe 6-1 créée par l\'avenant du 20 février 2026, étendu par arrêté du 20 mai 2026). Les minima sont adaptés à l\'horaire de travail effectif et supportent les majorations pour heures supplémentaires ou pour rémunération forfaitaire (forfaits en heures sur l\'année : +15 % ou +30 % ; forfait en jours : +30 %, proratisé si le nombre de jours est réduit), avec proratisation en cas d\'entrée, de départ, de suspension ou de changement de classement en cours d\'année ; barème adapté pour les débutants du groupe F (art. 139). Assiette de comparaison : éléments bruts soumis à cotisations, hors prime d\'ancienneté, majorations pour conditions particulières de travail, primes exceptionnelles, épargne salariale et frais (art. 140). Entreprises de 150 salariés au plus : report possible de l\'application du barème unique, au plus tard jusqu\'au 1er janvier 2030, sous conditions (art. 141).',
+      applicability: 'Entreprises appliquant la convention collective nationale de la métallurgie (IDCC 3248). Les montants évoluent chaque année : aucun montant n\'est stocké ni affiché par l\'audit.',
+      applicability_condition: { field: 'collective_agreement_idcc', in: ['3248'] },
+      periodicity: 'Barème révisé par accord de branche (annuel à ce jour) ; vérification à chaque nouveau barème et à chaque changement de classement ou d\'organisation du temps de travail.',
+      articles: ['CCN métallurgie (IDCC 3248), art. 138 à 143, annexe 6-1'],
+      source: [
+        { label: 'Légifrance (KALI) — CCN de la métallurgie du 7 février 2022', url: 'https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000046993250' },
+        { label: 'Légifrance (KALI) — art. 139, adaptation et majorations des minima (version avenant 2023)', url: 'https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000048487963' },
+        { label: 'Légifrance (KALI) — annexe 6-1, barème à partir de 2026 (avenant du 20 février 2026)', url: 'https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000054254729' },
+        { label: 'Légifrance (JORF) — arrêté d\'extension du 20 mai 2026', url: 'https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054200599' }
+      ],
+      source_checked_at: '2026-09-18', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
+      notes: 'Question générique (« minima applicables à leur classification et à leur organisation du temps de travail ») : aucun montant ni pourcentage n\'est affiché ni utilisé pour un red flag. Pourcentages des forfaits en heures lus en synthèse seulement. Points d\'interprétation dans LEGAL_VALIDATION_REQUIRED.'
+    },
+
     LR_EFFECTIF: {
       id: 'LR_EFFECTIF', status: 'legal_validation_required',
       title: 'Appréciation de l\'effectif pour les seuils',
@@ -238,6 +276,10 @@
       point: 'Applicabilité exacte de l\'état des lieux pendant la transition (cycles de 6 ans en cours, accords existants au 01/10/2026) à documenter sur source officielle (Q&R du Ministère du Travail) avant d\'activer C6.' },
     { rule: 'LR_SYNTEC_FORFAIT_JOURS', blocking: false, questions: ['CCN1486_FJ'],
       point: 'À valider par un juriste avant production : (1) sort des conventions individuelles signées avant le 01/07/2024 (ancien seuil position 3, deux entretiens par an) — aucune disposition transitoire trouvée ; (2) portée du critère « 2 fois le PASS » (salariés sous la position 2.3, non-cadres) et articulation avec L3121-58 ; (3) seuil de rémunération (120 % / 122 %) pour un forfait réduit ou une année incomplète ; (4) plafond conventionnel de 230 jours en cas de renonciation face au plafond supplétif de 235 jours ; (5) marge d\'un accord d\'entreprise pour déroger à la branche ; (6) conséquences d\'un suivi défaillant (jurisprudence non lue) ; (7) textes non lus en détail : chapitre X « déconnexion » (avenant 2022), article 4.4 consolidé, annexe II de classification, L3131-1 et L3132-2.' },
+    { rule: 'LR_METALLURGIE_CLASSIFICATION', blocking: false, questions: ['CCN3248_CLASSIF'],
+      point: 'À valider par un juriste avant production : (1) formalisme de la fiche descriptive et de la cotation (art. 63.1 : « établit » et communique « par tout moyen » ; cotation détaillée communiquée seulement sur demande) ; (2) articulation avec un éventuel accord d\'entreprise sur la classification (C. trav. L2253-1, non lu) ; (3) portée et durée de la garantie de rémunération de première application (art. 69) ; (4) voies de contestation au-delà de la demande d\'explications ; (5) exclusions de l\'arrêté d\'extension du 14/12/2022 lues en synthèse (aucune relevée sur les art. 59-69) ; (6) articles lus via un outil de synthèse : relecture mot à mot.' },
+    { rule: 'LR_METALLURGIE_MINIMA', blocking: false, questions: ['CCN3248_MINIMA'],
+      point: 'À valider par un juriste avant production : (1) période de comparaison aux minima (annuelle ou mensuelle) — aucune clause explicite lue ; (2) report du barème unique jusqu\'au 01/01/2030 pour les entreprises de 150 salariés au plus (art. 141) : conditions et formalités non lues intégralement — une entreprise en report peut légitimement appliquer d\'autres minima ; (3) chevauchement éventuel avec des accords territoriaux encore en vigueur (valeur du point, minima) ; (4) seuils exacts des majorations de forfaits en heures (+15 % / +30 %) lus en synthèse ; (5) relecture mot à mot des art. 138 à 143.' },
     { rule: 'LR_ENTRETIEN_PARCOURS', blocking: false, questions: ['Q17'],
       point: 'Q17 reste active (libellé sans périodicité). Confirmer les mesures transitoires de la loi n° 2025-989 pour la périodicité des entretiens.' }
   ];
@@ -246,7 +288,8 @@
   var LEGAL_WATCH = [
     { rule: 'LR_INDEX_EGALITE', reason: 'Évolution annoncée par le projet de loi de transposition de la directive 2023/970.' },
     { rule: 'LR_ENTRETIEN_PARCOURS', reason: 'Réforme récente (loi n° 2025-989), entrée en application progressive.' },
-    { rule: 'LR_DUERP', reason: 'Loi n° 2026-534 du 25/06/2026 ; portail de dépôt dématérialisé.' }
+    { rule: 'LR_DUERP', reason: 'Loi n° 2026-534 du 25/06/2026 ; portail de dépôt dématérialisé.' },
+    { rule: 'LR_METALLURGIE_MINIMA', reason: 'Barème des salaires minima révisé chaque année par avenant de branche.' }
   ];
 
   var API = {

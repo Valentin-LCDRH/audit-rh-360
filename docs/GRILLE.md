@@ -126,6 +126,48 @@ Score CRM : `compliance_score` · Point fort : « Vos documents et registres de 
 | Non / pas encore | 0 | Vérifier le cadre applicable à vos forfaits jours : revoir l'éligibilité des salariés concernés, les conventions individuelles écrites, les conditions conventionnelles et le suivi de la charge de travail. |
 | Je ne sais pas | 0 + vigilance | Identifier les salariés au forfait jours, puis vérifier leurs conventions individuelles, les conditions conventionnelles applicables et le suivi réalisé. |
 
+### CCN3248_CLASSIF — Classification conventionnelle des emplois
+
+**Vos emplois ont-ils été décrits, cotés et classés selon le système de classification prévu par la convention collective de la métallurgie ?**
+
+| Champ | Valeur |
+|---|---|
+| Type · poids · risque | C · 3 — critique · eleve |
+| Condition d'affichage | collective_agreement_idcc ∈ {3248} |
+| Red flag | Oui si « Non / pas encore » ou « Je ne sais pas » |
+| Legal flag · règle | Oui · `LR_METALLURGIE_CLASSIFICATION` (verified) |
+| Source · vérifiée le | [Légifrance (KALI) — CCN de la métallurgie du 7 février 2022](https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000046993250) ; [Légifrance (KALI) — art. 60, critères classants](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000046315184) ; [Légifrance (KALI) — art. 63.1, fiche descriptive (version avenant 2023)](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000048437148) ; [Légifrance (KALI) — art. 63.2.1, notification du classement](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000046315204) ; [Légifrance (JORF) — arrêté d'extension du 14 décembre 2022](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000046772742) ; [Légifrance (JORF) — arrêté d'extension de l'avenant du 11 juillet 2023](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000048567712) · 2026-09-18 |
+| Tags commerciaux (internes) | `metallurgie_classification` `audit_rh` |
+| Aide (tooltip) | La convention collective nationale de la métallurgie prévoit un système unique de classification fondé sur l'emploi réellement tenu. Chaque emploi est décrit puis coté selon les critères conventionnels afin de déterminer sa classe et son groupe d'emploi. |
+
+| Réponse | Score | Recommandation |
+|---|---|---|
+| Oui, totalement | 100 | — (maîtrisé) |
+| Partiellement / à vérifier | 50 | Vérifier la description des emplois réellement tenus, leur cotation selon les critères conventionnels et leur classement dans la classe et le groupe d'emploi correspondants. |
+| Non / pas encore | 0 | Décrire les emplois réellement tenus, les coter selon les critères conventionnels, puis les classer dans la classe et le groupe d'emploi correspondants. |
+| Je ne sais pas | 0 + vigilance | Vérifier si chaque emploi a été décrit, coté et classé selon le système de la convention collective, et comment le classement a été communiqué aux salariés. |
+
+### CCN3248_MINIMA — Minima conventionnels
+
+**Avez-vous vérifié que les rémunérations de vos salariés respectent les minima conventionnels applicables à leur classification et à leur organisation du temps de travail ?**
+
+| Champ | Valeur |
+|---|---|
+| Type · poids · risque | C · 3 — critique · eleve |
+| Condition d'affichage | collective_agreement_idcc ∈ {3248} |
+| Red flag | Oui si « Non / pas encore » ou « Je ne sais pas » |
+| Legal flag · règle | Oui · `LR_METALLURGIE_MINIMA` (verified) |
+| Source · vérifiée le | [Légifrance (KALI) — CCN de la métallurgie du 7 février 2022](https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000046993250) ; [Légifrance (KALI) — art. 139, adaptation et majorations des minima (version avenant 2023)](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000048487963) ; [Légifrance (KALI) — annexe 6-1, barème à partir de 2026 (avenant du 20 février 2026)](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000054254729) ; [Légifrance (JORF) — arrêté d'extension du 20 mai 2026](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054200599) · 2026-09-18 |
+| Tags commerciaux (internes) | `metallurgie_minima` `compensation` `audit_rh` |
+| Aide (tooltip) | Les minima conventionnels applicables dépendent notamment de la classification des emplois. Certaines modalités d'organisation du temps de travail peuvent avoir une incidence sur les montants applicables. |
+
+| Réponse | Score | Recommandation |
+|---|---|---|
+| Oui, totalement | 100 | — (maîtrisé) |
+| Partiellement / à vérifier | 50 | Contrôler que les rémunérations pratiquées respectent les minima correspondant aux situations des salariés concernés. |
+| Non / pas encore | 0 | Contrôler, salarié par salarié, que les rémunérations pratiquées respectent les minima correspondant à leur classement et à leur organisation du temps de travail. |
+| Je ne sais pas | 0 + vigilance | Identifier les minima applicables à chaque situation (classement, organisation du temps de travail) et les comparer aux rémunérations pratiquées. |
+
 ## Pilier 2/8 — Paie & administration RH
 
 Score CRM : `payroll_admin_score` · Point fort : « Votre paie et votre administration du personnel reposent sur des process fiables. » · À structurer : « La fiabilité de la paie et de l'administration repose encore sur des personnes plus que sur des process. »
@@ -836,6 +878,7 @@ Score CRM : `hr_operations_data_score` · Point fort : « Votre fonction RH est 
 Sélection normalisée par IDCC (29 conventions dans la liste de démarrage · source : Code du travail numérique (Ministère du Travail) — vérification IDCC par IDCC, 2026-09-18 · liste officielle complète à importer). Alternatives : « Je ne connais pas ma convention collective » (`unknown`) · « Mon entreprise n'applique pas de convention collective » (`none`).
 
 - **IDCC 1486 → module `syntec`** : contexte « Certains de vos salariés sont-ils au forfait annuel en jours ? » (Oui / Non / Je ne sais pas, hors score) · contrôles : `CCN1486_FJ` (collective_agreement_idcc ∈ {1486} ET forfait_jours ∈ {yes})
+- **IDCC 3248 → module `metallurgie`** : contexte  · contrôles : `CCN3248_CLASSIF` (collective_agreement_idcc ∈ {3248}), `CCN3248_MINIMA` (collective_agreement_idcc ∈ {3248})
 
 ## Seuils de maturité
 
@@ -860,7 +903,9 @@ Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_
 - `drh_externalise` — Faible maturité transverse ET fonction RH peu structurée, portée par la direction, sous-dimensionnée ou dépendante d'une personne. Règle : `{"all":[{"metric":"weak_pillars_count","gte":3},{"any":[{"field":"hr_organization","in":["leadership","external","small_team","other"]},{"field":"respondent_role","in":["ceo","daf"]},{"metric":"answer_score","question":"Q8","lte":33}]}]}`
 - `orkest` — Organisation globalement mature, fragilités de process, documentation, données, outils ou pilotage. Règle : `{"all":[{"metric":"global_score","gte":60},{"metric":"tagged_weak_count","tag":"orkest","gte":2}]}`
 - `recrutement` — Recrutement & onboarding ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine). Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"recruitment","lt":60},{"metric":"rank_from_bottom","pillar":"recruitment","lte":2}]},{"metric":"pillar_signal_count","pillar":"recruitment","gte":1},{"metric":"pillar_weak_answers","pillar":"recruitment","gte":2}]}`
-- `compensation` — Rémunération & équité ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine). Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"compensation","lt":60},{"metric":"rank_from_bottom","pillar":"compensation","lte":2}]},{"metric":"pillar_signal_count","pillar":"compensation","gte":1}]}`
+- `compensation` — Rémunération & équité ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine), ou classification ET minima Métallurgie faibles. Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"compensation","lt":60},{"metric":"rank_from_bottom","pillar":"compensation","lte":2}]},{"metric":"pillar_signal_count","pillar":"compensation","gte":1},{"all":[{"metric":"answer_score","question":"CCN3248_CLASSIF","lte":50},{"metric":"answer_score","question":"CCN3248_MINIMA","lte":50}]}]}`
+- `metallurgie_classification` — Métallurgie (IDCC 3248) : classification des emplois à sécuriser. Règle : `{"metric":"answer_score","question":"CCN3248_CLASSIF","lte":50}`
+- `metallurgie_minima` — Métallurgie (IDCC 3248) : minima conventionnels à vérifier. Règle : `{"metric":"answer_score","question":"CCN3248_MINIMA","lte":50}`
 - `relations_sociales` — Relations sociales ressort (pilier évalué, faible et parmi les 2 plus faibles, ou signal critique du domaine). Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"employee_relations","lt":60},{"metric":"rank_from_bottom","pillar":"employee_relations","lte":2}]},{"metric":"pillar_signal_count","pillar":"employee_relations","gte":1}]}`
 
 ## Règles réglementaires
@@ -879,6 +924,8 @@ Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_
 | `LR_ETAT_DES_LIEUX_PARCOURS` État des lieux récapitulatif du parcours professionnel | legal_validation_required | Tout employeur, pour les salariés atteignant l'ancienneté prévue par L6315-1. L'abondement du CPF (≥ 50 salariés) est une conséquence, pas une condition de l'obligation. | {"summary_review_every_years":8} | [Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053279288)<br>[Service-Public — Entretien professionnel (F32040)](https://www.service-public.gouv.fr/particuliers/vosdroits/F32040) | 2026-09-18 |
 | `LR_DUERP` Document unique d'évaluation des risques professionnels | verified | Tout employeur, dès le premier salarié. | Au moins annuelle à partir de 11 salariés ; à chaque changement significatif pour tous. | [Entreprendre.Service-Public — DUERP (F35360)](https://entreprendre.service-public.gouv.fr/vosdroits/F35360)<br>[Légifrance — L4121-3-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043893919) | 2026-09-18 |
 | `LR_SYNTEC_FORFAIT_JOURS` Forfait annuel en jours — Syntec (IDCC 1486) | verified | Entreprises appliquant la convention IDCC 1486 et ayant des salariés au forfait annuel en jours (déclaration de l'utilisateur). Un accord d'entreprise sur le forfait jours prime sur l'accord de branche (L3121-63). | {"interview_min_per_year":1,"remuneration_check":"annuelle","max_days":218} | [Légifrance — Code du travail, conventions de forfait (L3121-53 à L3121-66)](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072050/LEGISCTA000006189633/)<br>[Légifrance — L3121-64](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000036262805)<br>[Légifrance — L3121-65](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000036262800)<br>[Légifrance (KALI) — Syntec, avenant n° 2 du 13 décembre 2022 à l'accord du 22 juin 1999](https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000047348407)<br>[Légifrance (JORF) — Arrêté d'extension du 12 juin 2024](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000049747149)<br>[Légifrance (KALI) — Syntec, avenant du 1er avril 2014](https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000029264464) | 2026-09-18 |
+| `LR_METALLURGIE_CLASSIFICATION` Classification des emplois — Métallurgie (IDCC 3248) | verified | Entreprises appliquant la convention collective nationale de la métallurgie (IDCC 3248), sélectionnée par son IDCC. | À la première application (1er janvier 2024), à chaque embauche et à chaque évolution significative et durable de l'emploi (art. 63.2.3) ; fiche réexaminée lors de l'entretien professionnel (art. 63.1). | [Légifrance (KALI) — CCN de la métallurgie du 7 février 2022](https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000046993250)<br>[Légifrance (KALI) — art. 60, critères classants](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000046315184)<br>[Légifrance (KALI) — art. 63.1, fiche descriptive (version avenant 2023)](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000048437148)<br>[Légifrance (KALI) — art. 63.2.1, notification du classement](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000046315204)<br>[Légifrance (JORF) — arrêté d'extension du 14 décembre 2022](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000046772742)<br>[Légifrance (JORF) — arrêté d'extension de l'avenant du 11 juillet 2023](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000048567712) | 2026-09-18 |
+| `LR_METALLURGIE_MINIMA` Salaires minima hiérarchiques — Métallurgie (IDCC 3248) | verified | Entreprises appliquant la convention collective nationale de la métallurgie (IDCC 3248). Les montants évoluent chaque année : aucun montant n'est stocké ni affiché par l'audit. | Barème révisé par accord de branche (annuel à ce jour) ; vérification à chaque nouveau barème et à chaque changement de classement ou d'organisation du temps de travail. | [Légifrance (KALI) — CCN de la métallurgie du 7 février 2022](https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000046993250)<br>[Légifrance (KALI) — art. 139, adaptation et majorations des minima (version avenant 2023)](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000048487963)<br>[Légifrance (KALI) — annexe 6-1, barème à partir de 2026 (avenant du 20 février 2026)](https://www.legifrance.gouv.fr/conv_coll/article/KALIARTI000054254729)<br>[Légifrance (JORF) — arrêté d'extension du 20 mai 2026](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054200599) | 2026-09-18 |
 | `LR_EFFECTIF` Appréciation de l'effectif pour les seuils | legal_validation_required | Transverse. | — | [Légifrance — CSS L130-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051287151) | 2026-09-18 |
 
 ## LEGAL_VALIDATION_REQUIRED
@@ -888,6 +935,8 @@ Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_
 - non bloquant · `LR_NAO` (C4) — Valider le filtre « à partir de 50 salariés » + option « Non applicable » plutôt qu'une question de contexte sur la présence de délégués syndicaux.
 - ⛔ bloquant · `LR_ETAT_DES_LIEUX_PARCOURS` (C6) — Applicabilité exacte de l'état des lieux pendant la transition (cycles de 6 ans en cours, accords existants au 01/10/2026) à documenter sur source officielle (Q&R du Ministère du Travail) avant d'activer C6.
 - non bloquant · `LR_SYNTEC_FORFAIT_JOURS` (CCN1486_FJ) — À valider par un juriste avant production : (1) sort des conventions individuelles signées avant le 01/07/2024 (ancien seuil position 3, deux entretiens par an) — aucune disposition transitoire trouvée ; (2) portée du critère « 2 fois le PASS » (salariés sous la position 2.3, non-cadres) et articulation avec L3121-58 ; (3) seuil de rémunération (120 % / 122 %) pour un forfait réduit ou une année incomplète ; (4) plafond conventionnel de 230 jours en cas de renonciation face au plafond supplétif de 235 jours ; (5) marge d'un accord d'entreprise pour déroger à la branche ; (6) conséquences d'un suivi défaillant (jurisprudence non lue) ; (7) textes non lus en détail : chapitre X « déconnexion » (avenant 2022), article 4.4 consolidé, annexe II de classification, L3131-1 et L3132-2.
+- non bloquant · `LR_METALLURGIE_CLASSIFICATION` (CCN3248_CLASSIF) — À valider par un juriste avant production : (1) formalisme de la fiche descriptive et de la cotation (art. 63.1 : « établit » et communique « par tout moyen » ; cotation détaillée communiquée seulement sur demande) ; (2) articulation avec un éventuel accord d'entreprise sur la classification (C. trav. L2253-1, non lu) ; (3) portée et durée de la garantie de rémunération de première application (art. 69) ; (4) voies de contestation au-delà de la demande d'explications ; (5) exclusions de l'arrêté d'extension du 14/12/2022 lues en synthèse (aucune relevée sur les art. 59-69) ; (6) articles lus via un outil de synthèse : relecture mot à mot.
+- non bloquant · `LR_METALLURGIE_MINIMA` (CCN3248_MINIMA) — À valider par un juriste avant production : (1) période de comparaison aux minima (annuelle ou mensuelle) — aucune clause explicite lue ; (2) report du barème unique jusqu'au 01/01/2030 pour les entreprises de 150 salariés au plus (art. 141) : conditions et formalités non lues intégralement — une entreprise en report peut légitimement appliquer d'autres minima ; (3) chevauchement éventuel avec des accords territoriaux encore en vigueur (valeur du point, minima) ; (4) seuils exacts des majorations de forfaits en heures (+15 % / +30 %) lus en synthèse ; (5) relecture mot à mot des art. 138 à 143.
 - non bloquant · `LR_ENTRETIEN_PARCOURS` (Q17) — Q17 reste active (libellé sans périodicité). Confirmer les mesures transitoires de la loi n° 2025-989 pour la périodicité des entretiens.
 
 ## Veille (règles vérifiées mais mouvantes)
@@ -895,6 +944,7 @@ Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_
 - `LR_INDEX_EGALITE` — Évolution annoncée par le projet de loi de transposition de la directive 2023/970.
 - `LR_ENTRETIEN_PARCOURS` — Réforme récente (loi n° 2025-989), entrée en application progressive.
 - `LR_DUERP` — Loi n° 2026-534 du 25/06/2026 ; portail de dépôt dématérialisé.
+- `LR_METALLURGIE_MINIMA` — Barème des salaires minima révisé chaque année par avenant de branche.
 
 ## Disclaimer
 
