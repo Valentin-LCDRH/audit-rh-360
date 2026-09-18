@@ -153,7 +153,7 @@
          weak_pillars_count (< weak_pillar_below) · rank_from_bottom[pillar] (1 = plus faible) ·
          pillar_signal_count[pillar] (red flags + priorités 2 du pilier) ·
          pillar_weak_answers[pillar] (réponses de score 0 dans le pilier) ·
-         pillars_with_critical (nb de piliers portant un red flag ou une priorité 2) ·
+         pillars_with_critical (nb de piliers portant un red flag ou une priorité 2 forte) ·
          tagged_weak_count[tag] (questions portant ce tag avec score <= 33) ·
          answer_score[question] · red_flag_on[questions]. */
       rules: [
