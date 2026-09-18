@@ -20,8 +20,8 @@ docs/QA-PHASE2.md          recette de la maquette
 ```bash
 python3 -m http.server 8766
 ```
-Puis <http://127.0.0.1:8766/>. Le bouton **Outils de test** (maquette uniquement, `data-arh-dev="true"`
-ou `?test=1`) charge les profils préconfigurés, simule la validation juridique des règles en attente,
+Puis <http://127.0.0.1:8766/> (version propre pour les tests utilisateurs) ou <http://127.0.0.1:8766/?test=1>.
+Le bouton **Outils de test** (maquette uniquement, `?test=1` ou `data-arh-dev="true"`) charge les profils préconfigurés, simule la validation juridique des règles en attente,
 désactive l'Index égalité et affiche le payload CRM, les signaux commerciaux internes et les événements.
 
 ## Contrôles

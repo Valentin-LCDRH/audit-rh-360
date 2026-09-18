@@ -219,7 +219,7 @@
       commercial: ['lead_interest'],
       acquisition: ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'],
       meta: ['audit_id', 'config_version', 'legal_rules_version', 'completed_at', 'page_url', 'consent_scope'],
-      detail: ['method_version', 'pillar_details', 'lead_signals'],   // pilier : score, statut, nb de questions applicables
+      detail: ['method_version', 'pillar_details', 'lead_signals', 'audit_metrics'],   // pilier : score, statut, nb de questions applicables
       raw: 'answers_json'   // intégralité des réponses : [{ question_id, answer_id, score, applicable, red_flag }]
     },
 
@@ -274,11 +274,20 @@
      * ------------------------------------------------------------------ */
     analytics: {
       events: ['audit_view', 'audit_started', 'context_completed', 'pillar_completed', 'audit_completed',
-               'results_viewed', 'report_requested', 'meeting_cta_clicked'],
-      properties: ['company_size', 'global_score', 'lowest_pillar', 'red_flags_count', 'source']
+               'results_viewed', 'report_requested', 'meeting_cta_clicked',
+               'audit_exit'],   // ajouté : départ de la page en cours d'audit (dernière question / dernier pilier)
+      properties: ['company_size', 'global_score', 'lowest_pillar', 'red_flags_count', 'source'],
+      /* Mesure de durée (tests utilisateurs), invisible pour l'utilisateur.
+         - audit_duration_seconds : horloge murale, clic « Démarrer » -> premier affichage du résultat
+           (`audit_resumed` = true si l'audit a été repris après une interruption : durée à interpréter).
+         - questionnaire_duration_seconds / pillar_duration_seconds : temps d'affichage des questions,
+           hors contextualisation, cumulé par pilier. Chaque segment d'écran est plafonné à
+           `max_segment_seconds` (onglet abandonné, pause) et interrompu quand la page est masquée.
+         - back_count, answer_changes, last_question_id, last_pillar. Pas de temps par question en V1. */
+      timing: { max_segment_seconds: 300 }
     },
     utm_keys: ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'],
-    storage: { progress_key: 'arh_progress', utm_key: 'arh_utm', progress_ttl_days: 30 },
+    storage: { progress_key: 'arh_progress', utm_key: 'arh_utm', progress_ttl_days: 30, last_metrics_key: 'arh_last_metrics' },
     method_version: 'weighted-questions-v1'
   };
 

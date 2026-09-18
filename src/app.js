@@ -26,7 +26,8 @@
   var overrides = { rules: {}, questions: {} };
   function freshState() {
     return { step: 'intro', ctxIndex: 0, qIndex: 0, context: {}, answers: {}, converted: false,
-      audit_id: 'arh_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7), started_at: null, completed_at: null };
+      audit_id: 'arh_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7), started_at: null, completed_at: null,
+      metrics: null };
   }
   function cfg() {
     var hasOver = Object.keys(overrides.rules).length || Object.keys(overrides.questions).length;
@@ -269,7 +270,7 @@
     var C = R.commercial_cta;
     return '<section class="arh-card" id="arh-done"><div class="arh-done-mark"><span aria-hidden="true">✓</span> Votre rapport est en route</div>' +
       '<p class="arh-muted" style="margin:10px 0 0">Il contient le détail de vos réponses, les sujets à sécuriser et votre roadmap RH complète. Vous pouvez le transférer à votre direction.</p>' +
-      (DEV ? '<p class="arh-small" style="margin:10px 0 0">Maquette : aucun email n\'est envoyé. <button class="arh-link" data-act="preview-email">Voir l\'aperçu du rapport</button></p>' : '') +
+      (M && M.active ? '<p class="arh-small" style="margin:10px 0 0">Maquette de test : aucun email n\'est envoyé. <button class="arh-link" data-act="preview-email">Voir l\'aperçu du rapport</button></p>' : '') +
       '</section>' +
       '<section class="arh-card arh-cta-block"><h3 class="arh-h3" style="font-size:22px">' + esc(C.title) + '</h3>' +
       '<p class="arh-muted" style="margin:8px 0 0">' + esc(C.text) + '</p>' +
@@ -280,7 +281,25 @@
   /* ================================================================
    * Rendu et événements
    * ================================================================ */
+  /* Mesure de durée (invisible) : un segment par écran de question, fermé hors questionnaire. */
+  var CAP = R.analytics.timing.max_segment_seconds;
+  function syncTiming() {
+    var m = S.metrics;
+    if (!m || m.results_at) return;
+    var q = S.step === 'question' ? questions()[S.qIndex] : null;
+    if (q && !doc.hidden) return E.openSegment(m, q, Date.now(), CAP);
+    E.closeSegment(m, Date.now(), CAP);
+    if (q) { m.last_question_id = q.id; m.last_pillar = q.pillar; }   // point atteint, même page masquée
+  }
+  function metricsProps() {
+    var sm = E.metricsSummary(S.metrics);
+    return sm ? { audit_duration_seconds: sm.audit_duration_seconds, questionnaire_duration_seconds: sm.questionnaire_duration_seconds,
+      pillar_duration_seconds: sm.pillar_duration_seconds, audit_resumed: sm.audit_resumed,
+      back_count: sm.back_count, answer_changes: sm.answer_changes } : {};
+  }
+
   function render() {
+    syncTiming();
     var html;
     if (S.step === 'intro') html = renderIntro();
     else if (S.step === 'context') html = renderContext();
@@ -290,8 +309,13 @@
     if (S.step === 'results' && !S.converted) {
       var res = E.evaluate(S.context, S.answers, cfg());
       if (res.complete && !S.completion_tracked) {   // une seule fois par audit, même après rechargement
-        S.completion_tracked = true; save();
-        track('audit_completed', resultProps(res));
+        S.completion_tracked = true;
+        if (S.metrics) { E.closeSegment(S.metrics, Date.now(), CAP); S.metrics.results_at = Date.now(); }
+        save();
+        if (S.metrics) store('localStorage', R.storage.last_metrics_key, JSON.stringify({   // local uniquement, aucune donnée personnelle
+          completed_at: new Date().toISOString(), company_size: S.context.company_size, respondent_role: S.context.respondent_role,
+          questions_count: res.questions_count, metrics: E.metricsSummary(S.metrics) }));
+        track('audit_completed', Object.assign(resultProps(res), metricsProps()));
       }
       if (res.complete && !fired['results_viewed_' + S.audit_id]) {   // une fois par visite
         fired['results_viewed_' + S.audit_id] = true;
@@ -331,6 +355,7 @@
 
   function answerQuestion(val) {
     var q = questions()[S.qIndex];
+    if (S.metrics && S.answers[q.id] && S.answers[q.id] !== val) S.metrics.answer_changes++;
     S.answers[q.id] = val;
     save(); markPressed(val);
     setTimeout(qNext, 220);
@@ -339,12 +364,17 @@
     var qs = questions(), q = qs[S.qIndex];
     if (!q || !S.answers[q.id]) return;
     var next = qs[S.qIndex + 1];
-    if ((!next || next.pillar !== q.pillar) && !fired['pc_' + q.pillar]) { fired['pc_' + q.pillar] = true; track('pillar_completed', { pillar: q.pillar }); }
+    if ((!next || next.pillar !== q.pillar) && !fired['pc_' + q.pillar]) {
+      fired['pc_' + q.pillar] = true;
+      var pm = S.metrics ? E.closeSegment(S.metrics, Date.now(), CAP) : null;
+      track('pillar_completed', { pillar: q.pillar, pillar_duration_seconds: pm ? Math.round((pm.pillar_ms[q.pillar] || 0) / 1000) : null });
+    }
     if (!next) { S.completed_at = new Date().toISOString(); return go('results'); }
     go('question', { qIndex: S.qIndex + 1 });
   }
 
   function back() {
+    if (S.metrics && !S.metrics.results_at) S.metrics.back_count++;
     if (S.step === 'question') return S.qIndex > 0 ? go('question', { qIndex: S.qIndex - 1 }) : go('context', { ctxIndex: BASE.Q.CONTEXT.length - 1 });
     if (S.step === 'context') return S.ctxIndex > 0 ? go('context', { ctxIndex: S.ctxIndex - 1 }) : go('intro');
   }
@@ -361,7 +391,8 @@
     if (Object.keys(errors).length) { render(); var first = view.querySelector('[aria-invalid="true"]'); if (first) first.focus(); return; }
     var C = cfg(), res = E.evaluate(S.context, S.answers, C);
     var payload = E.buildPayload({ result: res, context: S.context, contact: contactDraft, utm: UTM,
-      meta: { audit_id: S.audit_id, completed_at: S.completed_at || new Date().toISOString(), page_url: root.location.href.split('#')[0] } }, C);
+      meta: { audit_id: S.audit_id, completed_at: S.completed_at || new Date().toISOString(), page_url: root.location.href.split('#')[0],
+        metrics: E.metricsSummary(S.metrics) } }, C);
     var email = M.buildReportEmail(res, payload, C);
     lastEmail = email; lastPayload = payload;
     sending = true; render();
@@ -400,11 +431,13 @@
     }
     var act = t.getAttribute('data-act');
     if (act === 'start') {
-      S = freshState(); S.started_at = new Date().toISOString(); contactDraft = {}; formErrors = {};
+      S = freshState(); S.started_at = new Date().toISOString(); S.metrics = E.newMetrics(Date.now()); contactDraft = {}; formErrors = {};
       track('audit_started', null, true);
       go('context', { ctxIndex: 0 });
     } else if (act === 'resume') {
-      S = saved; saved = null; go(S.step === 'intro' ? 'context' : S.step);
+      S = saved; saved = null;
+      if (S.metrics) { S.metrics.resumed = true; S.metrics.segment = null; }   // l'interruption n'est pas comptée
+      go(S.step === 'intro' ? 'context' : S.step);
     } else if (act === 'back') back();
     else if (act === 'ctx-next') ctxNext();
     else if (act === 'q-next') qNext();
@@ -470,11 +503,17 @@
         red_flags: res.red_flags.map(function (a) { return a.question_id; }), priorites_2: res.critical.map(function (a) { return a.question_id + ' (' + a.tone + ')'; }),
         piliers: res.pillars.map(function (p) { return p.id + ' ' + (p.evaluated ? Math.round(p.score * 10) / 10 : 'non évalué') + ' · ' + p.applicable_count + ' q.'; })
       }, null, 2) : 'Contexte non renseigné') + '</pre>' +
+      '<h3>Mesures — audit en cours</h3><pre>' + esc(S.metrics ? JSON.stringify(E.metricsSummary(S.metrics), null, 2) : 'Non mesuré (profil préconfiguré)') + '</pre>' +
+      '<h3>Mesures — dernier audit terminé sur ce navigateur</h3><pre>' + esc(lastMetricsText()) + '</pre>' +
       '<h3>Signaux commerciaux (internes)</h3><pre>' + esc(res ? JSON.stringify(res.lead_signals, null, 2) : '—') + '</pre>' +
       '<h3>Payload CRM ' + (lastPayload ? '(envoyé au mock)' : '(aperçu, sans contact)') + '</h3><pre>' + esc(payload ? JSON.stringify(payload, null, 2) : '—') + '</pre>' +
       '<h3>Événements dataLayer</h3><pre>' + esc(devLog.slice(0, 20).join('\n') || '—') + '</pre>' +
       '<h3>UTM retenues</h3><pre>' + esc(JSON.stringify(UTM)) + '</pre>' +
       '<p style="margin-top:16px"><button class="arh-btn arh-btn-secondary" data-dev="reset">Tout réinitialiser</button></p>';
+  }
+  function lastMetricsText() {
+    try { var o = JSON.parse(load('localStorage', R.storage.last_metrics_key) || 'null'); return o ? JSON.stringify(o, null, 2) : '—'; }
+    catch (e) { return '—'; }
   }
   function onDevClick(e) {
     var t = e.target.closest('[data-dev]'); if (!t) return;
@@ -503,6 +542,19 @@
   /* ================================================================
    * Démarrage
    * ================================================================ */
+  /* Page masquée : on arrête le chronomètre ; page quittée en cours d'audit : dernier point atteint. */
+  doc.addEventListener('visibilitychange', function () { syncTiming(); save(); });
+  root.addEventListener('pagehide', function () {
+    if ((S.step === 'context' || S.step === 'question') && !fired.audit_exit) {
+      var sm = E.metricsSummary(S.metrics) || {};
+      track('audit_exit', { step: S.step, last_question_id: sm.last_question_id || '', last_pillar: sm.last_pillar || '',
+        question_index: S.step === 'question' ? S.qIndex + 1 : 0, questions_count: S.step === 'question' ? questions().length : 0,
+        questionnaire_duration_seconds: sm.questionnaire_duration_seconds || 0 }, true);
+    }
+    if (S.metrics) E.closeSegment(S.metrics, Date.now(), CAP);
+    save();
+  });
+
   saved = E.restoreProgress(load('localStorage', R.storage.progress_key), new Date(), R.storage.progress_ttl_days);
   if (saved && saved.step === 'results' && saved.converted) saved = null;   // audit terminé et rapport demandé : on repart de zéro
   render();

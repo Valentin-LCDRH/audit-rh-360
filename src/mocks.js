@@ -105,7 +105,8 @@
     return { subject: 'Votre diagnostic RH 360°', html: h.join('') };
   }
 
-  var API = { submitReport: submitReport, buildReportEmail: buildReportEmail, log: log };
+  /* active : intégrations simulées -> l'interface le signale (aucun email réellement envoyé). */
+  var API = { active: true, submitReport: submitReport, buildReportEmail: buildReportEmail, log: log };
   root.ARH_MOCKS = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
 })(typeof window !== 'undefined' ? window : globalThis);

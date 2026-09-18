@@ -281,6 +281,23 @@
     ok(/reproduire/.test(E.evaluate(CTX5, { Q13: 'A' }).roadmap[0].recommendation), 'recommandation de la variante');
   });
 
+  test('Mesure de durée : questionnaire, piliers, plafond, retours et modifications', function () {
+    var t0 = 1000000, m = E.newMetrics(t0);
+    var q1 = { id: 'Q1', pillar: 'compliance' }, q5 = { id: 'Q5', pillar: 'payroll_admin' };
+    E.openSegment(m, q1, t0 + 60000, 300);          // 60 s de contextualisation : non comptées
+    E.openSegment(m, q5, t0 + 70000, 300);          // 10 s sur Q1
+    E.closeSegment(m, t0 + 70000 + 3600000, 300);   // onglet abandonné 1 h : plafonné à 300 s
+    m.back_count = 2; m.answer_changes = 1; m.results_at = t0 + 90000;
+    var s2 = E.metricsSummary(m);
+    eq(s2.pillar_duration_seconds, { compliance: 10, payroll_admin: 300 });
+    eq(s2.questionnaire_duration_seconds, 310, 'hors contextualisation');
+    eq(s2.audit_duration_seconds, 90, 'horloge murale Démarrer -> résultat');
+    eq([s2.back_count, s2.answer_changes, s2.last_question_id, s2.last_pillar], [2, 1, 'Q5', 'payroll_admin']);
+    eq(E.closeSegment(m, t0 + 99999999, 300).questionnaire_ms, 310000, 'segment déjà fermé : aucun ajout');
+    var p = E.buildPayload({ result: run('pme_intermediaire'), meta: { metrics: s2 } });
+    eq(p.audit_metrics.questionnaire_duration_seconds, 310, 'mesures jointes au payload');
+  });
+
   test('Tags commerciaux : plusieurs possibles, drh_externalise exige l\'organisation RH', function () {
     ok(run('pme_fragile').lead_interest.length >= 2);
     var ctx = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'internal_team' };

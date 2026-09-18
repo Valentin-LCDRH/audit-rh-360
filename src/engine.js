@@ -408,6 +408,7 @@
         applicable_count: pl.applicable_count, scored_count: pl.scored_count, red_flags_count: pl.red_flags_count };
     });
     p.lead_signals = res.lead_signals;
+    p.audit_metrics = meta.metrics || null;
     p.answers_json = JSON.stringify(res.items.map(function (it) {
       return { question_id: it.question_id, variant_id: it.variant_id, pillar: it.pillar, answer_id: it.answer_id, score: it.score,
         weight: it.weight, applicable: true, in_score: it.in_score, red_flag: it.red_flag };
@@ -445,13 +446,51 @@
     return { utm: out, from_url: any };
   }
 
+  /* ================================================================
+   * Mesure de durée et de friction (pur : l'horloge est passée en paramètre)
+   * ================================================================ */
+  function newMetrics(now) {
+    return { started_at: now, results_at: null, resumed: false, questionnaire_ms: 0, pillar_ms: {},
+      segment: null, back_count: 0, answer_changes: 0, last_question_id: null, last_pillar: null };
+  }
+  /* Ferme le segment d'écran en cours (plafonné) et l'ajoute au questionnaire et à son pilier. */
+  function closeSegment(m, now, capSeconds) {
+    if (!m || !m.segment) return m;
+    var dt = Math.max(0, Math.min(now - m.segment.t0, (capSeconds || 300) * 1000));
+    m.questionnaire_ms += dt;
+    m.pillar_ms[m.segment.pillar] = (m.pillar_ms[m.segment.pillar] || 0) + dt;
+    m.segment = null;
+    return m;
+  }
+  /* Ouvre un segment sur une question (ferme le précédent). */
+  function openSegment(m, question, now, capSeconds) {
+    closeSegment(m, now, capSeconds);
+    m.segment = { pillar: question.pillar, t0: now };
+    m.last_question_id = question.id; m.last_pillar = question.pillar;
+    return m;
+  }
+  function metricsSummary(m) {
+    if (!m) return null;
+    var pillars = {};
+    Object.keys(m.pillar_ms).forEach(function (k) { pillars[k] = Math.round(m.pillar_ms[k] / 1000); });
+    return {
+      audit_duration_seconds: m.results_at ? Math.round((m.results_at - m.started_at) / 1000) : null,
+      questionnaire_duration_seconds: Math.round(m.questionnaire_ms / 1000),
+      pillar_duration_seconds: pillars,
+      audit_resumed: !!m.resumed,
+      back_count: m.back_count, answer_changes: m.answer_changes,
+      last_question_id: m.last_question_id, last_pillar: m.last_pillar
+    };
+  }
+
   var API = {
     defaultConfig: defaultConfig, withOverrides: withOverrides,
     evalCond: evalCond, obligationApplies: obligationApplies,
     isActive: isActive, isApplicable: isApplicable,
     questionsFor: questionsFor, pillarsFor: pillarsFor, answerOptions: answerOptions, resolveQuestion: resolveQuestion,
     levelFor: levelFor, evaluate: evaluate, buildPayload: buildPayload,
-    serializeProgress: serializeProgress, restoreProgress: restoreProgress, resolveUtm: resolveUtm
+    serializeProgress: serializeProgress, restoreProgress: restoreProgress, resolveUtm: resolveUtm,
+    newMetrics: newMetrics, openSegment: openSegment, closeSegment: closeSegment, metricsSummary: metricsSummary
   };
   root.ARH_ENGINE = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;

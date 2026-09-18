@@ -78,3 +78,15 @@ Question la plus longue : Q5 (62 mots avec ses 4 situations).
 Chronométrer de « Démarrer mon audit RH » à l'affichage du score ; noter les questions relues ou commentées
 et les hésitations sur les situations A/B/C/D. Viser 3 à 5 testeurs de profils différents (dirigeant de TPE,
 RRH de PME, DRH d'ETI), dont au moins un sur mobile.
+
+## Itération 4 (2026-09-18) — mesure de durée et de friction (invisible pour l'utilisateur)
+- `audit_completed` porte : `audit_duration_seconds`, `questionnaire_duration_seconds` (hors contexte),
+  `pillar_duration_seconds` (par pilier), `audit_resumed`, `back_count`, `answer_changes`.
+- `pillar_completed` porte `pillar_duration_seconds` du pilier. Nouvel événement `audit_exit` (page quittée en cours
+  d'audit) : `last_question_id`, `last_pillar`, `question_index` / `questions_count`. Pas de temps par question.
+- Segments plafonnés à 300 s, pause si page masquée ; mesures jointes au payload (`audit_metrics`). Test ajouté (30/30).
+- Vérifié dans le navigateur : 25 s au total dont 19 s de questionnaire (contexte exclu), répartition par pilier,
+  1 retour et 1 modification comptés ; `audit_exit` unique avec Q7 (7/34).
+- Maquette propre par défaut : outils de test via `?test=1` ; mesures du dernier audit terminé conservées localement ;
+  mention « Maquette de test : aucun email n'est envoyé » toujours affichée tant que les intégrations sont simulées.
+- Note : en local, faire un rechargement forcé après une mise à jour (cache du navigateur).
