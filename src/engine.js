@@ -264,6 +264,17 @@
     var optimisations = veryGood ? roadmap.filter(function (a) { return a.priority >= 4; }) : roadmap.filter(function (a) { return a.priority === 5; });
     function itemById(id) { return items.filter(function (it) { return it.question_id === id; })[0]; }
 
+    /* ---- 7. Aperçu gratuit de la roadmap (jamais complété artificiellement) ---- */
+    var DL = R.roadmap_display_limit, preview;
+    if (veryGood) {
+      preview = { mode: 'optimisations', actions: optimisations.slice(0, DL.free_results) };
+      preview.remaining_count = optimisations.length - preview.actions.length;
+    } else {
+      var prio = roadmap.filter(function (a) { return a.priority <= DL.free_max_priority; });
+      preview = { mode: prio.length ? 'priorities' : 'none', actions: prio.slice(0, DL.free_results) };
+      preview.remaining_count = roadmap.length - preview.actions.length;
+    }
+
     var result = {
       method_version: R.method_version,
       config_version: cfg.Q.version, legal_rules_version: cfg.L.version,
@@ -279,6 +290,7 @@
       areas_to_structure: areas,
       strengths: strengths, strengths_fallback: strengthsFallback,
       optimisations: optimisations,
+      free_preview: preview,
       very_good: veryGood,
       vigilance_count: items.filter(function (it) { return it.vigilance; }).length,
       lowest_pillar: ev.length ? ev.filter(function (p) { return p.rank_from_bottom === 1; })[0].id : null

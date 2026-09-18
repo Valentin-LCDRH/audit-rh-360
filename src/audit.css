@@ -164,6 +164,9 @@
 
 /* ---------- Lead gate ---------- */
 .arh-gate { border: 1.5px solid var(--arh-violet-200); background: linear-gradient(180deg, var(--arh-violet-50), #fff 45%); }
+.arh-benefits { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.arh-benefits li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; font-size: 16px; }
+.arh-benefits li::before { content: "✓"; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--arh-violet-100); color: var(--arh-violet); margin-top: 1px; }
 .arh-form { display: grid; gap: 14px; margin-top: 22px; }
 @media (min-width: 640px) { .arh-form { grid-template-columns: 1fr 1fr; } .arh-form .arh-full { grid-column: 1 / -1; } }
 .arh-field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }

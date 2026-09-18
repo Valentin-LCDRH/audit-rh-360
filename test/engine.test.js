@@ -249,6 +249,22 @@
     ok(r.red_flags.length === 0, 'B poids 3 jamais présenté comme red flag');
   });
 
+  test('Aperçu gratuit : jusqu\'à 3 vraies priorités, jamais complété, optimisations si très bon résultat', function () {
+    var vg = run('tres_mature');
+    eq(vg.free_preview.mode, 'optimisations');
+    ok(vg.free_preview.actions.every(function (a) { return a.priority >= 4; }), 'aucune « priorité » inventée');
+    var one = all(CTX50, 'yes', 'D', { Q25: 'no', Q20: 'C' });
+    eq(one.free_preview.mode, 'priorities');
+    eq(one.free_preview.actions.map(function (a) { return a.question_id; }), ['Q25'], 'une seule action pertinente = une seule affichée');
+    eq(one.free_preview.remaining_count, 1, 'la piste d\'optimisation reste dans le rapport');
+    var many = run('pme_fragile');
+    eq(many.free_preview.actions.length, 3);
+    eq(many.free_preview.remaining_count, many.roadmap.length - 3);
+    ['pme_intermediaire', 'eti_data', 'tpe_sans_cse', 'score_eleve_red_flag'].forEach(function (id) {
+      ok(run(id).free_preview.actions.every(function (a) { return a.priority <= 4; }), id + ' : pas d\'optimisation affichée comme priorité');
+    });
+  });
+
   test('Tags commerciaux : plusieurs possibles, drh_externalise exige l\'organisation RH', function () {
     ok(run('pme_fragile').lead_interest.length >= 2);
     var ctx = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'internal_team' };

@@ -19,6 +19,11 @@ pondéré sur toutes les questions ; tags commerciaux = signaux internes multipl
 - `scripts/build-grille.sh` : régénère `docs/GRILLE.md` (ne jamais l'éditer à la main).
 
 ## Règles non négociables
+- **Production** : aucune question ni logique réglementaire incertaine activée. Avant mise en production,
+  passe de validation par un juriste sur TOUTES les règles `legal_flag` (pas seulement Q24/C6) ;
+  `validated_by` renseigné pour chacune.
+- Partie gratuite = vraie valeur (score, 8 piliers dont « Non évalué », sujets à sécuriser, points forts,
+  jusqu'à 3 vraies actions). L'email débloque l'approfondissement ; aucun résultat masqué ni priorité inventée.
 - Jamais « non conforme », « illégal », « sanction » : vocabulaire À vérifier / À sécuriser / À structurer / Maîtrisé.
 - Aucune règle réglementaire sans `legal_rule`, `applicability`, `source` officielle, `verified_at`.
   Règle incertaine → statut `legal_validation_required` → questions inactives.

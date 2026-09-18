@@ -89,7 +89,10 @@
 
     /* Ordre de tri à l'intérieur d'une même priorité (déterministe). */
     roadmap_sort: ['weight_desc', 'score_asc', 'pillar_order_asc', 'question_order_asc'],
-    roadmap_display_limit: { free_results: 3, report: null },   // null = pas de limite dans le rapport
+    /* Aperçu gratuit : JUSQU'À `free_results` actions réellement prioritaires (priorités 1 à
+       `free_max_priority`), jamais complété artificiellement. Très bon résultat : pistes d'optimisation,
+       jamais présentées comme des priorités. `report: null` = roadmap complète dans le rapport. */
+    roadmap_display_limit: { free_results: 3, free_max_priority: 4, report: null },
 
     /* Champs stockés pour chaque action de roadmap. */
     roadmap_action_fields: ['title', 'description', 'pillar', 'priority', 'reason', 'recommendation', 'question_id'],
@@ -131,6 +134,12 @@
       strengths_title: 'Vos points forts',
       strengths_fallback_title: 'Vos points d\'appui',
       pillar_not_evaluated: 'Non évalué au regard de votre situation',
+      preview: {
+        title: 'Vos premières actions',
+        subtitle: 'Aperçu de votre roadmap',
+        remaining: { one: '+ 1 action dans votre rapport détaillé', many: '+ {n} actions dans votre rapport détaillé' },
+        very_good_more: 'Retrouvez l\'ensemble de votre diagnostic et de vos recommandations dans votre rapport détaillé.'
+      },
       vigilance_note: 'Certaines réponses « Je ne sais pas » sont comptées comme des points à vérifier.'
     },
 
@@ -217,7 +226,16 @@
     /* Contact : téléphone volontairement absent en V1. */
     lead_form: {
       title: 'Recevez votre rapport détaillé + votre roadmap RH personnalisée',
-      text: 'Recevez par email le détail de vos réponses, les sujets à sécuriser et une roadmap personnalisée de vos prochaines actions RH.',
+      /* Ce que l'email apporte EN PLUS de l'écran. Puces affichées selon le résultat (`when`) :
+         always · has_red_flags · has_areas · not_very_good · very_good. */
+      intro: 'Retrouvez :',
+      benefits: [
+        { text: 'le détail de vos 8 piliers RH', when: 'always' },
+        { text: 'les points à sécuriser', when: 'has_red_flags' },
+        { text: 'vos axes de structuration', when: 'has_areas' },
+        { text: 'une roadmap priorisée des actions à mener', when: 'not_very_good' },
+        { text: 'vos pistes d\'optimisation et les recommandations associées', when: 'very_good' }
+      ],
       fields: [
         { id: 'firstname', label: 'Prénom', required: true },
         { id: 'lastname', label: 'Nom', required: true },

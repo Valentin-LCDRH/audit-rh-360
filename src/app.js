@@ -224,22 +224,23 @@
 
     if (!res.very_good) h += strengthsHtml;
 
-    /* Bloc 6 — pistes d'optimisation (très bon résultat) ou aperçu de roadmap */
-    var lim = R.roadmap_display_limit.free_results;
-    if (res.very_good) {
-      if (res.optimisations.length) h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' + esc(T.very_good.optimisations_title) + '</h3></div><ul class="arh-items">' +
-        res.optimisations.slice(0, lim).map(function (a) { return itemHtml({ title: a.title, body: a.recommendation }, 'optim'); }).join('') + '</ul></section>';
-    } else if (res.roadmap.length) {
-      h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">Vos premières actions</h3><span class="arh-small">Aperçu de votre roadmap</span></div><ol class="arh-roadmap">' +
-        res.roadmap.slice(0, lim).map(function (a) {
+    /* Bloc 6 — aperçu de roadmap : jusqu'à 3 vraies priorités, ou pistes d'optimisation si très bon résultat */
+    var FP = res.free_preview, PV = T.preview;
+    if (FP.mode === 'optimisations' && FP.actions.length) {
+      h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' + esc(T.very_good.optimisations_title) + '</h3></div><ul class="arh-items">' +
+        FP.actions.map(function (a) { return itemHtml({ title: a.title, body: a.recommendation }, 'optim'); }).join('') + '</ul>' +
+        '<p class="arh-small" style="margin:14px 0 0">' + esc(PV.very_good_more) + '</p></section>';
+    } else if (FP.mode === 'priorities') {
+      h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' + esc(PV.title) + '</h3><span class="arh-small">' + esc(PV.subtitle) + '</span></div><ol class="arh-roadmap">' +
+        FP.actions.map(function (a) {
           return '<li><div><span class="arh-tag' + (a.priority === 1 ? ' arh-tag-secure' : '') + '">' + esc(priorityLabel(a)) + '</span>' +
             '<h4>' + esc(a.title) + '</h4><p>' + esc(a.recommendation || a.description) + '</p></div></li>';
         }).join('') + '</ol>' +
-        (res.roadmap.length > lim ? '<div class="arh-locked">+ ' + (res.roadmap.length - lim) + ' actions priorisées dans votre roadmap détaillée, envoyée avec votre rapport.</div>' : '') + '</section>';
+        (FP.remaining_count > 0 ? '<div class="arh-locked">' + esc(plural(FP.remaining_count, PV.remaining)) + '</div>' : '') + '</section>';
     }
 
     /* Bloc 7 — lead gate / post-conversion */
-    h += S.converted ? renderConverted() : renderGate();
+    h += S.converted ? renderConverted() : renderGate(res);
 
     h += '<p class="arh-disclaimer">' + esc(R.disclaimer) + '</p>';
     h += '<div class="arh-actions-row"><button class="arh-btn arh-btn-ghost" data-act="edit">Modifier mes réponses</button>' +
@@ -248,10 +249,16 @@
     return h;
   }
 
-  function renderGate() {
+  function benefitShown(when, res) {
+    return when === 'always' || (when === 'has_red_flags' && res.red_flags.length > 0) ||
+      (when === 'has_areas' && res.areas_to_structure.length > 0) ||
+      (when === 'not_very_good' && !res.very_good) || (when === 'very_good' && res.very_good);
+  }
+  function renderGate(res) {
     var F = R.lead_form;
     return '<section class="arh-card arh-gate" id="arh-gate"><h3 class="arh-h3" style="font-size:22px">' + esc(F.title) + '</h3>' +
-      '<p class="arh-muted" style="margin:8px 0 0">' + esc(F.text) + '</p>' +
+      '<p class="arh-muted" style="margin:10px 0 6px">' + esc(F.intro) + '</p>' +
+      '<ul class="arh-benefits">' + F.benefits.filter(function (b) { return benefitShown(b.when, res); }).map(function (b) { return '<li>' + esc(b.text) + '</li>'; }).join('') + '</ul>' +
       '<form class="arh-form" novalidate data-form="lead">' + F.fields.map(function (f) {
         var err = formErrors[f.id];
         return '<div class="arh-field' + (f.id === 'email' || f.id === 'company' ? '' : '') + '"><label for="arh-f-' + f.id + '">' + esc(f.label) + '</label>' +

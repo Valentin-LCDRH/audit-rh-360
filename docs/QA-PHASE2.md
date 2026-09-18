@@ -46,3 +46,20 @@ Contre-signature humaine (`validated_by`) : vide pour toutes les règles.
 ## Intégrations restant à brancher (Phase 5, rien de branché)
 Zapier (webhook), Pipedrive (payload prêt : `ARH_ENGINE.buildPayload`), Brevo (gabarit : `ARH_MOCKS.buildReportEmail`),
 GA4/GTM (8 événements poussés dans `dataLayer`), destination du CTA commercial (`commercial_cta.url`, mockée).
+
+## Itération du 2026-09-18 (arbitrages validés)
+- Aperçu gratuit : jusqu'à 3 actions de priorité 1 à 4, jamais complété ; « + N actions dans votre rapport
+  détaillé ». Très bon résultat : pistes d'optimisation, jamais présentées comme priorités. Test ajouté (28/28).
+  Vérifié : profil 1 → 3 actions + 18 ; profil 5 → 1 seule action (DUERP) + 3 ; profil 4 → 3 optimisations.
+- Bloc de conversion : « Retrouvez : » + puces adaptées au résultat (8 piliers, points à sécuriser s'il y en a,
+  axes s'il y en a, roadmap priorisée ou pistes d'optimisation).
+- Résultat : les 8 piliers restent affichés, le pilier sans objet en « Non évalué ».
+
+## Durée estimée (lecture à 200 mots/min + 4 s de décision par écran, 5 écrans de contexte)
+| Profil | Questions | Mots à lire | Durée estimée |
+|---|---|---|---|
+| 1-10 sans CSE | 26 | 1 230 | ~8,7 min |
+| 11-49 avec CSE | 30 | 1 395 | ~9,8 min |
+| 50+ avec CSE | 34 | 1 515 | ~10,7 min |
+Écart avec la promesse « ≈ 5 minutes » : à mesurer avec de vrais testeurs (chronomètre).
+Question la plus longue : Q5 (62 mots avec ses 4 situations).
