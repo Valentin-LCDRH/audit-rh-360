@@ -47,6 +47,7 @@
     /* Statut affiché au niveau d'une réponse (vocabulaire imposé : jamais « non conforme »). */
     answer_status: {
       red_flag: 'À sécuriser',
+      critical_structure: 'À structurer en priorité',
       unknown: 'À vérifier',
       partial: 'À vérifier',
       weak_maturity: 'À structurer',   // réponses M de score <= weak_max_score
@@ -60,25 +61,28 @@
      * ------------------------------------------------------------------ */
     thresholds: {
       weak_max_score: 0,           // « réponse faible » = score <= 0 (Non, Je ne sais pas, situation A)
-      partial_scores: [33, 50],    // « Partiellement » (50) ou situation B (33)
+      critical_structure_answers: ['B'],   // poids 3 + ces situations M -> priorité 2 « À structurer en priorité »
+      critical_weight: 3,
+      partial_max_score: 50,       // priorité 4 : toute autre réponse de score <= 50 (B, Partiellement, faibles poids 1-2)
       optimisation_scores: [67],   // situation C : piste d'optimisation
       low_pillar_below: 60,        // pilier « faible maturité » si score < 60
       strength_min_score: 80,      // pilier point fort
       strength_fallback_min: 67,   // si aucun pilier >= 80 : points d'appui >= 67
       max_strengths: 3,
       max_areas_to_structure: 3,
-      very_good: { min_global: 80, no_red_flag: true, no_pillar_below: 60 }
+      /* Cas « très bon résultat » : aucune priorité n'est inventée. Toutes les conditions sont requises. */
+      very_good: { min_global: 80, no_red_flag: true, no_critical: true, no_pillar_below: 60 }
     },
 
     roadmap_priorities: [
       { priority: 1, id: 'red_flag',         label: 'Sujets à sécuriser en priorité',
         rule: 'Réponse déclenchant un red flag réglementaire.' },
       { priority: 2, id: 'critical_weak',    label: 'Points critiques à traiter',
-        rule: 'Question de poids 3 avec réponse faible (score <= weak_max_score), hors red flag.' },
+        rule: 'Question de poids 3 avec Non, Je ne sais pas ou situation A, hors red flag (tonalité forte). Question de poids 3 en situation B : même priorité, tonalité « À structurer en priorité ». Jamais présenté comme un red flag.' },
       { priority: 3, id: 'low_pillar',       label: 'Piliers à structurer',
         rule: 'Pilier dont le score est < low_pillar_below : une action de pilier, alimentée par ses réponses les plus faibles non déjà listées.' },
       { priority: 4, id: 'partial',          label: 'Points à consolider',
-        rule: 'Toute autre réponse de score <= 50 non déjà listée (« Partiellement », situation B, et réponses faibles de poids 1-2 hors pilier faible).' },
+        rule: 'Toute autre réponse de score <= 50 non déjà listée (« Partiellement », situation B hors poids 3, réponses faibles de poids 1-2).' },
       { priority: 5, id: 'optimisation',     label: 'Pistes d\'optimisation',
         rule: 'Situation C (score 67) : présentée comme optimisation, jamais comme problème.' }
     ],
@@ -93,7 +97,8 @@
     /* Gabarits de `reason` (texte court expliquant pourquoi l'action est là). */
     reason_templates: {
       red_flag: 'Vous indiquez « {answer} » sur un sujet encadré par la réglementation.',
-      critical_weak: 'Sujet critique pour lequel votre réponse indique une faible structuration.',
+      critical_weak: 'Sujet critique pour lequel votre réponse indique qu\'il n\'est pas encore en place.',
+      critical_structure: 'Sujet critique qui existe mais reste insuffisamment structuré.',
       low_pillar: 'Le pilier « {pillar} » obtient {score}/100.',
       partial: 'Votre réponse indique une mise en place partielle.',
       optimisation: 'Votre pratique est en place ; elle peut encore être renforcée.'
@@ -140,34 +145,52 @@
      * (1 = pilier le plus faible), tagged_weak_count[tag] (questions portant ce tag avec score <= 33).
      * ------------------------------------------------------------------ */
     lead_interest: {
+      /* Signaux INTERNES d'orientation, pas un diagnostic commercial : plusieurs tags possibles,
+         chacun accompagné des raisons qui l'ont déclenché (lead_signals). */
       weak_pillar_below: 50,
+      /* Métriques : red_flags_count · critical_count (priorité 2, deux tonalités) ·
+         critical_strong_count (priorité 2 forte) · global_score · pillar_score[pillar] ·
+         weak_pillars_count (< weak_pillar_below) · rank_from_bottom[pillar] (1 = plus faible) ·
+         pillar_signal_count[pillar] (red flags + priorités 2 du pilier) ·
+         pillar_weak_answers[pillar] (réponses de score 0 dans le pilier) ·
+         pillars_with_critical (nb de piliers portant un red flag ou une priorité 2) ·
+         tagged_weak_count[tag] (questions portant ce tag avec score <= 33) ·
+         answer_score[question] · red_flag_on[questions]. */
       rules: [
         { tag: 'audit_rh',
-          description: 'Plusieurs sujets de conformité / fondamentaux à sécuriser.',
-          when: { any: [ { metric: 'red_flags_count', gte: 2 },
-                         { metric: 'pillar_score', pillar: 'compliance', lt: 60 } ] } },
+          description: 'Plusieurs sujets réglementaires ou fondamentaux à sécuriser, ou sujets critiques dispersés.',
+          when: { any: [
+            { metric: 'red_flags_count', gte: 2 },
+            { metric: 'pillar_weak_answers', pillar: 'compliance', gte: 2 },
+            { metric: 'pillar_score', pillar: 'compliance', lt: 50 },
+            { metric: 'pillars_with_critical', gte: 3 } ] } },
         { tag: 'drh_externalise',
-          description: 'Faible maturité transverse et fonction RH peu structurée ou portée par la direction.',
-          when: { all: [ { metric: 'weak_pillars_count', gte: 3 },
-                         { any: [ { field: 'hr_organization', in: ['leadership', 'external', 'other', 'small_team'] },
-                                  { field: 'respondent_role', in: ['ceo', 'daf'] } ] } ] } },
+          description: 'Faible maturité transverse ET fonction RH peu structurée, portée par la direction, sous-dimensionnée ou dépendante d\'une personne.',
+          when: { all: [
+            { metric: 'weak_pillars_count', gte: 3 },
+            { any: [ { field: 'hr_organization', in: ['leadership', 'external', 'small_team', 'other'] },
+                     { field: 'respondent_role', in: ['ceo', 'daf'] },
+                     { metric: 'answer_score', question: 'Q8', lte: 33 } ] } ] } },
         { tag: 'orkest',
           description: 'Organisation globalement mature, fragilités de process, documentation, données, outils ou pilotage.',
           when: { all: [ { metric: 'global_score', gte: 60 },
                          { metric: 'tagged_weak_count', tag: 'orkest', gte: 2 } ] } },
         { tag: 'recrutement',
-          description: 'Recrutement & onboarding ressort nettement.',
-          when: { all: [ { metric: 'pillar_score', pillar: 'recruitment', lt: 60 },
-                         { metric: 'rank_from_bottom', pillar: 'recruitment', lte: 2 } ] } },
+          description: 'Recrutement & onboarding ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine).',
+          when: { any: [ { all: [ { metric: 'pillar_score', pillar: 'recruitment', lt: 60 },
+                                  { metric: 'rank_from_bottom', pillar: 'recruitment', lte: 2 } ] },
+                         { metric: 'pillar_signal_count', pillar: 'recruitment', gte: 1 },
+                         { metric: 'pillar_weak_answers', pillar: 'recruitment', gte: 2 } ] } },
         { tag: 'compensation',
-          description: 'Rémunération & équité ressort nettement.',
-          when: { all: [ { metric: 'pillar_score', pillar: 'compensation', lt: 60 },
-                         { metric: 'rank_from_bottom', pillar: 'compensation', lte: 2 } ] } },
+          description: 'Rémunération & équité ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine).',
+          when: { any: [ { all: [ { metric: 'pillar_score', pillar: 'compensation', lt: 60 },
+                                  { metric: 'rank_from_bottom', pillar: 'compensation', lte: 2 } ] },
+                         { metric: 'pillar_signal_count', pillar: 'compensation', gte: 1 } ] } },
         { tag: 'relations_sociales',
-          description: 'Relations sociales ressort nettement (pilier évalué uniquement).',
+          description: 'Relations sociales ressort (pilier évalué, faible et parmi les 2 plus faibles, ou signal critique du domaine).',
           when: { any: [ { all: [ { metric: 'pillar_score', pillar: 'employee_relations', lt: 60 },
                                   { metric: 'rank_from_bottom', pillar: 'employee_relations', lte: 2 } ] },
-                         { metric: 'red_flag_on', questions: ['Q9', 'C3', 'C4'] } ] } }
+                         { metric: 'pillar_signal_count', pillar: 'employee_relations', gte: 1 } ] } }
       ]
     },
 
@@ -185,6 +208,7 @@
       commercial: ['lead_interest'],
       acquisition: ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'],
       meta: ['audit_id', 'config_version', 'legal_rules_version', 'completed_at', 'page_url'],
+      detail: ['method_version', 'pillar_details', 'lead_signals'],   // pilier : score, statut, nb de questions applicables
       raw: 'answers_json'   // intégralité des réponses : [{ question_id, answer_id, score, applicable, red_flag }]
     },
 
@@ -198,14 +222,19 @@
         { id: 'email', label: 'Email professionnel', required: true, type: 'email' },
         { id: 'company', label: 'Entreprise', required: true }
       ],
-      cta: 'Recevoir mon rapport'
+      cta: 'Recevoir mon rapport',
+      privacy_note: 'Vos informations servent uniquement à vous envoyer votre rapport et, si vous le souhaitez, à échanger avec vous sur vos résultats.',
+      privacy_url: 'https://www.leclubdesrh.fr/politique-de-confidentialite'
     },
 
     commercial_cta: {
       title: 'Besoin d\'approfondir certains sujets ?',
       text: 'Le pré-diagnostic permet d\'identifier vos principales priorités. Un consultant RH senior peut approfondir l\'analyse, sécuriser les points identifiés et construire avec vous une roadmap adaptée à votre organisation.',
       cta: 'Échanger sur mon audit RH',
-      url: null   // destination à préciser (parcours existant)
+      /* Destination MOCKÉE en Phase 2 (aucune redirection réelle). Chemin définitif à renseigner avant
+         la Phase 4/5 ; comme pour le simulateur RPO, seul le chemin sera utilisé, sur le domaine visité. */
+      url: '#mock-rendez-vous',
+      mock: true
     },
 
     /* ------------------------------------------------------------------
@@ -217,7 +246,8 @@
       properties: ['company_size', 'global_score', 'lowest_pillar', 'red_flags_count', 'source']
     },
     utm_keys: ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'],
-    storage: { progress_key: 'arh_progress', utm_key: 'arh_utm' }
+    storage: { progress_key: 'arh_progress', utm_key: 'arh_utm', progress_ttl_days: 30 },
+    method_version: 'weighted-questions-v1'
   };
 
   root.ARH_RULES = RULES;

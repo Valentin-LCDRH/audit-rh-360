@@ -143,7 +143,7 @@
     LR_ENTRETIEN_PARCOURS: {
       id: 'LR_ENTRETIEN_PARCOURS', status: 'verified',
       title: 'Entretien de parcours professionnel et état des lieux récapitulatif',
-      legal_rule: 'Tout salarié bénéficie d\'un entretien de parcours professionnel (distinct de l\'évaluation), donnant lieu à un écrit dont une copie lui est remise. Premier entretien au cours de la première année, puis périodicité fixée par L6315-1 (4 ans à la date de vérification). État des lieux récapitulatif périodique (8 ans à la date de vérification). Entreprises d\'au moins 50 salariés : abondement du CPF si, sur la période, le salarié n\'a pas bénéficié des entretiens prévus et d\'au moins une formation non obligatoire.',
+      legal_rule: 'Tout salarié bénéficie d\'un entretien de parcours professionnel (distinct de l\'évaluation), donnant lieu à un écrit dont une copie lui est remise. Premier entretien au cours de la première année, puis périodicité fixée par L6315-1 (4 ans à la date de vérification). État des lieux récapitulatif : voir LR_ETAT_DES_LIEUX_PARCOURS. Entreprises d\'au moins 50 salariés : abondement du CPF si, sur la période, le salarié n\'a pas bénéficié des entretiens prévus et d\'au moins une formation non obligatoire.',
       applicability: 'Tout employeur ; abondement correctif du CPF à partir de 50 salariés.',
       applicability_condition: null,
       periodicity: { first_interview: 'au cours de la 1re année', interview_every_years: 4, summary_review_every_years: 8 },
@@ -155,6 +155,22 @@
       ],
       source_checked_at: '2026-02-20', verified_at: CHECKED, validated_by: null,
       notes: 'La périodicité n\'est JAMAIS écrite dans les libellés : elle est lue ici. Mesures transitoires (cycles de 6 ans en cours, accords existants applicables jusqu\'au 01/10/2026) : voir LEGAL_VALIDATION_REQUIRED.'
+    },
+
+    LR_ETAT_DES_LIEUX_PARCOURS: {
+      id: 'LR_ETAT_DES_LIEUX_PARCOURS', status: 'legal_validation_required',
+      title: 'État des lieux récapitulatif du parcours professionnel',
+      legal_rule: 'Tout employeur réalise, pour chaque salarié, un état des lieux récapitulatif de son parcours professionnel (entretiens réalisés, formation suivie, certification, progression salariale ou professionnelle), à la périodicité fixée par L6315-1 (8 ans à la date de vérification). Entreprises d\'au moins 50 salariés : abondement correctif du CPF si les conditions ne sont pas remplies (L6323-13).',
+      applicability: 'Tout employeur, pour les salariés atteignant l\'ancienneté prévue par L6315-1. L\'abondement du CPF (≥ 50 salariés) est une conséquence, pas une condition de l\'obligation.',
+      applicability_condition: null,   // l'obligation ne dépend pas de l'effectif
+      periodicity: { summary_review_every_years: 8 },
+      articles: ['C. trav. L6315-1', 'L6323-13', 'Loi n° 2025-989 du 24 octobre 2025, art. 3'],
+      source: [
+        { label: 'Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)', url: LF + 'LEGIARTI000053279288' },
+        { label: 'Service-Public — Entretien professionnel (F32040)', url: 'https://www.service-public.gouv.fr/particuliers/vosdroits/F32040' }
+      ],
+      source_checked_at: '2026-02-20', verified_at: CHECKED, validated_by: null,
+      notes: 'Mesures transitoires non vérifiées : passage de 6 à 8 ans pour les cycles en cours, application aux accords collectifs existants à compter du 01/10/2026. C6 reste INACTIVE tant que ce point n\'est pas documenté.'
     },
 
     LR_DUERP: {
@@ -193,12 +209,14 @@
   var LEGAL_VALIDATION_REQUIRED = [
     { rule: 'LR_TRANSPARENCE_SALARIALE', blocking: true, questions: ['Q24'],
       point: 'Directive (UE) 2023/970 non transposée au 18/09/2026 (projet de loi du 10/09/2026). Activer Q24 uniquement après publication du texte : seuils, dates d\'application, conditions de red flag (obligation future ≠ manquement actuel).' },
-    { rule: 'LR_EFFECTIF', blocking: false, questions: ['Q4', 'Q9', 'C3', 'C4', 'C5', 'C6'],
+    { rule: 'LR_EFFECTIF', blocking: false, questions: ['Q4', 'Q9', 'C3', 'C4', 'C5'],
       point: 'Valider l\'usage de la tranche d\'effectif déclarée (sans tester la durée de franchissement du seuil) et la mention correspondante dans l\'aide contextuelle.' },
     { rule: 'LR_NAO', blocking: false, questions: ['C4'],
       point: 'Valider le filtre « à partir de 50 salariés » + option « Non applicable » plutôt qu\'une question de contexte sur la présence de délégués syndicaux.' },
-    { rule: 'LR_ENTRETIEN_PARCOURS', blocking: false, questions: ['Q17', 'C6'],
-      point: 'Mesures transitoires de la loi n° 2025-989 (cycles de 6 ans en cours, application aux accords existants au 01/10/2026) à confirmer via le Q&R du Ministère du Travail (page non lisible par l\'agent).' }
+    { rule: 'LR_ETAT_DES_LIEUX_PARCOURS', blocking: true, questions: ['C6'],
+      point: 'Applicabilité exacte de l\'état des lieux pendant la transition (cycles de 6 ans en cours, accords existants au 01/10/2026) à documenter sur source officielle (Q&R du Ministère du Travail) avant d\'activer C6.' },
+    { rule: 'LR_ENTRETIEN_PARCOURS', blocking: false, questions: ['Q17'],
+      point: 'Q17 reste active (libellé sans périodicité). Confirmer les mesures transitoires de la loi n° 2025-989 pour la périodicité des entretiens.' }
   ];
 
   /* Règles vérifiées mais susceptibles d'évoluer rapidement : à revérifier à chaque version. */

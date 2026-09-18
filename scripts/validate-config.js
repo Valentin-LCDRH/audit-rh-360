@@ -63,6 +63,7 @@
   });
 
   function isActive(q) {
+    if (q.enabled === false) return false;
     return (q.legal_rule || []).every(function (id) { return L.RULES[id] && L.RULES[id].status === 'verified'; });
   }
 
@@ -80,7 +81,10 @@
     if (q.legal_flag && !(q.legal_rule && q.legal_rule.length)) err(w + ' : legal_flag sans legal_rule');
     if (!q.legal_flag && q.red_flag_conditions.length) err(w + ' : red flag sans legal_flag');
     checkCond(q.applicability, w);
-    q.red_flag_conditions.forEach(function (rf) { checkCond(rf.when, w + ' (red flag)'); });
+    /* Un red flag = réponse déclenchante + obligation applicable : l'obligation est obligatoire. */
+    q.red_flag_conditions.forEach(function (rf) {
+      if (!rf.obligation || (q.legal_rule || []).indexOf(rf.obligation) < 0) err(w + ' : red flag sans obligation rattachée à la question');
+    });
     var rec = q.recommendation_by_answer || {};
     if (q.type === 'M') {
       ['A', 'B', 'C', 'D'].forEach(function (k) { if (!q.answers || !q.answers[k]) err(w + ' : situation ' + k + ' manquante'); });

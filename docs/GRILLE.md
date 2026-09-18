@@ -1,7 +1,7 @@
 # Audit RH 360° — Grille métier (Phase 1)
 
 > Document généré depuis `src/config/*.js` par `scripts/build-grille.sh`. Ne pas éditer à la main : modifier la configuration puis régénérer.
-> Version config : `0.1.0-phase1` · référentiel réglementaire : `2026-09-18`.
+> Version config : `0.2.0` · référentiel réglementaire : `2026-09-18`.
 
 ## Échelles de réponse
 
@@ -310,7 +310,7 @@ Score CRM : `employee_relations_score` · Point fort : « Votre dialogue social 
 |---|---|
 | Type · poids · risque | C · 2 — important · modere |
 | Condition d'affichage | company_size ∈ {50-249, 250-999, 1000+} |
-| Red flag | Oui si « Non / pas encore » ou « Je ne sais pas » |
+| Red flag | Oui si « Non / pas encore » |
 | Legal flag · règle | Oui · `LR_NAO` (verified) |
 | Source · vérifiée le | [Légifrance — Code du travail, L2242-1 et suivants](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072050/LEGISCTA000006189527/) · 2026-09-18 |
 | Tags commerciaux (internes) | `relations_sociales` `audit_rh` |
@@ -437,17 +437,17 @@ Score CRM : `development_score` · Point fort : « Le développement des compét
 | Non / pas encore | 0 | Planifier les entretiens de parcours professionnel dus et mettre en place un suivi par salarié. |
 | Je ne sais pas | 0 + vigilance | Vérifier, salarié par salarié, la date du dernier entretien de parcours professionnel et sa formalisation. |
 
-### C6 — État des lieux du parcours professionnel
+### C6 — État des lieux du parcours professionnel ⛔ INACTIVE (validation juridique requise)
 
 **Pour les salariés concernés, l'état des lieux récapitulatif de leur parcours professionnel est-il réalisé et formalisé ?**
 
 | Champ | Valeur |
 |---|---|
 | Type · poids · risque | C · 2 — important · modere |
-| Condition d'affichage | company_size ∈ {11-49, 50-249, 250-999, 1000+} |
-| Red flag | Oui si « Non / pas encore » ou « Je ne sais pas » et company_size ∈ {50-249, 250-999, 1000+} |
-| Legal flag · règle | Oui · `LR_ENTRETIEN_PARCOURS` (verified) |
-| Source · vérifiée le | [Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053279288) ; [Légifrance — Loi n° 2025-989, art. 3](https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000052430965) ; [Service-Public — Entretien professionnel (F32040)](https://www.service-public.gouv.fr/particuliers/vosdroits/F32040) · 2026-09-18 |
+| Condition d'affichage | Toujours posée |
+| Red flag | Oui si « Non / pas encore » ou « Je ne sais pas » |
+| Legal flag · règle | Oui · `LR_ETAT_DES_LIEUX_PARCOURS` (legal_validation_required) |
+| Source · vérifiée le | [Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053279288) ; [Service-Public — Entretien professionnel (F32040)](https://www.service-public.gouv.fr/particuliers/vosdroits/F32040) · 2026-09-18 |
 | Tags commerciaux (internes) | `audit_rh` |
 | Aide (tooltip) | Bilan périodique qui vérifie que le salarié a bénéficié des entretiens et actions prévus. Si aucun salarié n'a encore l'ancienneté requise, répondez « Non applicable ». |
 
@@ -817,21 +817,21 @@ Score CRM : `hr_operations_data_score` · Point fort : « Votre fonction RH est 
 ## Hiérarchie de restitution / roadmap
 
 1. **Sujets à sécuriser en priorité** — Réponse déclenchant un red flag réglementaire.
-2. **Points critiques à traiter** — Question de poids 3 avec réponse faible (score <= weak_max_score), hors red flag.
+2. **Points critiques à traiter** — Question de poids 3 avec Non, Je ne sais pas ou situation A, hors red flag (tonalité forte). Question de poids 3 en situation B : même priorité, tonalité « À structurer en priorité ». Jamais présenté comme un red flag.
 3. **Piliers à structurer** — Pilier dont le score est < low_pillar_below : une action de pilier, alimentée par ses réponses les plus faibles non déjà listées.
-4. **Points à consolider** — Toute autre réponse de score <= 50 non déjà listée (« Partiellement », situation B, et réponses faibles de poids 1-2 hors pilier faible).
+4. **Points à consolider** — Toute autre réponse de score <= 50 non déjà listée (« Partiellement », situation B hors poids 3, réponses faibles de poids 1-2).
 5. **Pistes d'optimisation** — Situation C (score 67) : présentée comme optimisation, jamais comme problème.
 
-Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_asc. Seuils : {"weak_max_score":0,"partial_scores":[33,50],"optimisation_scores":[67],"low_pillar_below":60,"strength_min_score":80,"strength_fallback_min":67,"max_strengths":3,"max_areas_to_structure":3,"very_good":{"min_global":80,"no_red_flag":true,"no_pillar_below":60}}
+Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_asc. Seuils : {"weak_max_score":0,"critical_structure_answers":["B"],"critical_weight":3,"partial_max_score":50,"optimisation_scores":[67],"low_pillar_below":60,"strength_min_score":80,"strength_fallback_min":67,"max_strengths":3,"max_areas_to_structure":3,"very_good":{"min_global":80,"no_red_flag":true,"no_critical":true,"no_pillar_below":60}}
 
 ## Qualification commerciale (interne, jamais affichée)
 
-- `audit_rh` — Plusieurs sujets de conformité / fondamentaux à sécuriser. Règle : `{"any":[{"metric":"red_flags_count","gte":2},{"metric":"pillar_score","pillar":"compliance","lt":60}]}`
-- `drh_externalise` — Faible maturité transverse et fonction RH peu structurée ou portée par la direction. Règle : `{"all":[{"metric":"weak_pillars_count","gte":3},{"any":[{"field":"hr_organization","in":["leadership","external","other","small_team"]},{"field":"respondent_role","in":["ceo","daf"]}]}]}`
+- `audit_rh` — Plusieurs sujets réglementaires ou fondamentaux à sécuriser, ou sujets critiques dispersés. Règle : `{"any":[{"metric":"red_flags_count","gte":2},{"metric":"pillar_weak_answers","pillar":"compliance","gte":2},{"metric":"pillar_score","pillar":"compliance","lt":50},{"metric":"pillars_with_critical","gte":3}]}`
+- `drh_externalise` — Faible maturité transverse ET fonction RH peu structurée, portée par la direction, sous-dimensionnée ou dépendante d'une personne. Règle : `{"all":[{"metric":"weak_pillars_count","gte":3},{"any":[{"field":"hr_organization","in":["leadership","external","small_team","other"]},{"field":"respondent_role","in":["ceo","daf"]},{"metric":"answer_score","question":"Q8","lte":33}]}]}`
 - `orkest` — Organisation globalement mature, fragilités de process, documentation, données, outils ou pilotage. Règle : `{"all":[{"metric":"global_score","gte":60},{"metric":"tagged_weak_count","tag":"orkest","gte":2}]}`
-- `recrutement` — Recrutement & onboarding ressort nettement. Règle : `{"all":[{"metric":"pillar_score","pillar":"recruitment","lt":60},{"metric":"rank_from_bottom","pillar":"recruitment","lte":2}]}`
-- `compensation` — Rémunération & équité ressort nettement. Règle : `{"all":[{"metric":"pillar_score","pillar":"compensation","lt":60},{"metric":"rank_from_bottom","pillar":"compensation","lte":2}]}`
-- `relations_sociales` — Relations sociales ressort nettement (pilier évalué uniquement). Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"employee_relations","lt":60},{"metric":"rank_from_bottom","pillar":"employee_relations","lte":2}]},{"metric":"red_flag_on","questions":["Q9","C3","C4"]}]}`
+- `recrutement` — Recrutement & onboarding ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine). Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"recruitment","lt":60},{"metric":"rank_from_bottom","pillar":"recruitment","lte":2}]},{"metric":"pillar_signal_count","pillar":"recruitment","gte":1},{"metric":"pillar_weak_answers","pillar":"recruitment","gte":2}]}`
+- `compensation` — Rémunération & équité ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine). Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"compensation","lt":60},{"metric":"rank_from_bottom","pillar":"compensation","lte":2}]},{"metric":"pillar_signal_count","pillar":"compensation","gte":1}]}`
+- `relations_sociales` — Relations sociales ressort (pilier évalué, faible et parmi les 2 plus faibles, ou signal critique du domaine). Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"employee_relations","lt":60},{"metric":"rank_from_bottom","pillar":"employee_relations","lte":2}]},{"metric":"pillar_signal_count","pillar":"employee_relations","gte":1}]}`
 
 ## Règles réglementaires
 
@@ -846,15 +846,17 @@ Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_
 | `LR_INDEX_EGALITE` Index de l'égalité professionnelle femmes-hommes | verified | Entreprises d'au moins 50 salariés. | Annuelle (publication au plus tard le 1er mars). | [Entreprendre.Service-Public — Index de l'égalité professionnelle (F35103)](https://entreprendre.service-public.gouv.fr/vosdroits/F35103) | 2026-09-18 |
 | `LR_TRANSPARENCE_SALARIALE` Transparence des rémunérations (directive (UE) 2023/970) | legal_validation_required | Inconnue en droit français à la date de vérification. | — | [Légifrance — Directive (UE) 2023/970](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000047656481)<br>[Entreprendre.Service-Public — actualité du 10/09/2026 (projet de loi)](https://entreprendre.service-public.gouv.fr/actualites/A19060) | 2026-09-18 |
 | `LR_ENTRETIEN_PARCOURS` Entretien de parcours professionnel et état des lieux récapitulatif | verified | Tout employeur ; abondement correctif du CPF à partir de 50 salariés. | {"first_interview":"au cours de la 1re année","interview_every_years":4,"summary_review_every_years":8} | [Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053279288)<br>[Légifrance — Loi n° 2025-989, art. 3](https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000052430965)<br>[Service-Public — Entretien professionnel (F32040)](https://www.service-public.gouv.fr/particuliers/vosdroits/F32040) | 2026-09-18 |
+| `LR_ETAT_DES_LIEUX_PARCOURS` État des lieux récapitulatif du parcours professionnel | legal_validation_required | Tout employeur, pour les salariés atteignant l'ancienneté prévue par L6315-1. L'abondement du CPF (≥ 50 salariés) est une conséquence, pas une condition de l'obligation. | {"summary_review_every_years":8} | [Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053279288)<br>[Service-Public — Entretien professionnel (F32040)](https://www.service-public.gouv.fr/particuliers/vosdroits/F32040) | 2026-09-18 |
 | `LR_DUERP` Document unique d'évaluation des risques professionnels | verified | Tout employeur, dès le premier salarié. | Au moins annuelle à partir de 11 salariés ; à chaque changement significatif pour tous. | [Entreprendre.Service-Public — DUERP (F35360)](https://entreprendre.service-public.gouv.fr/vosdroits/F35360)<br>[Légifrance — L4121-3-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043893919) | 2026-09-18 |
 | `LR_EFFECTIF` Appréciation de l'effectif pour les seuils | legal_validation_required | Transverse. | — | [Légifrance — CSS L130-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051287151) | 2026-09-18 |
 
 ## LEGAL_VALIDATION_REQUIRED
 
 - ⛔ bloquant · `LR_TRANSPARENCE_SALARIALE` (Q24) — Directive (UE) 2023/970 non transposée au 18/09/2026 (projet de loi du 10/09/2026). Activer Q24 uniquement après publication du texte : seuils, dates d'application, conditions de red flag (obligation future ≠ manquement actuel).
-- non bloquant · `LR_EFFECTIF` (Q4, Q9, C3, C4, C5, C6) — Valider l'usage de la tranche d'effectif déclarée (sans tester la durée de franchissement du seuil) et la mention correspondante dans l'aide contextuelle.
+- non bloquant · `LR_EFFECTIF` (Q4, Q9, C3, C4, C5) — Valider l'usage de la tranche d'effectif déclarée (sans tester la durée de franchissement du seuil) et la mention correspondante dans l'aide contextuelle.
 - non bloquant · `LR_NAO` (C4) — Valider le filtre « à partir de 50 salariés » + option « Non applicable » plutôt qu'une question de contexte sur la présence de délégués syndicaux.
-- non bloquant · `LR_ENTRETIEN_PARCOURS` (Q17, C6) — Mesures transitoires de la loi n° 2025-989 (cycles de 6 ans en cours, application aux accords existants au 01/10/2026) à confirmer via le Q&R du Ministère du Travail (page non lisible par l'agent).
+- ⛔ bloquant · `LR_ETAT_DES_LIEUX_PARCOURS` (C6) — Applicabilité exacte de l'état des lieux pendant la transition (cycles de 6 ans en cours, accords existants au 01/10/2026) à documenter sur source officielle (Q&R du Ministère du Travail) avant d'activer C6.
+- non bloquant · `LR_ENTRETIEN_PARCOURS` (Q17) — Q17 reste active (libellé sans périodicité). Confirmer les mesures transitoires de la loi n° 2025-989 pour la périodicité des entretiens.
 
 ## Veille (règles vérifiées mais mouvantes)
 

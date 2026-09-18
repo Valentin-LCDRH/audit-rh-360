@@ -13,6 +13,10 @@
  *   dans scoring.js pour la grammaire). Une question non applicable est exclue du score.
  * - Activation : une question liée à des règles (`legal_rule`) reste INACTIVE tant qu'une de ses
  *   règles n'est pas au statut 'verified' dans legal-rules.js (voir LEGAL_VALIDATION_REQUIRED).
+ * - `enabled` (facultatif, true par défaut) : interrupteur éditorial. `enabled: false` retire la question
+ *   du parcours et du score sans toucher à l'interface ni au moteur (ex. désactiver l'Index égalité).
+ * - `red_flag_conditions` : [{ answers, obligation }] — un red flag exige À LA FOIS une réponse
+ *   déclenchante ET l'obligation `obligation` (legal-rules.js) vérifiée et applicable au contexte.
  * - `recommendation_by_answer` : texte d'action pour chaque réponse non maximale.
  * - `commercial_tags` : usage interne (qualification), JAMAIS affiché.
  */
@@ -155,7 +159,7 @@
       help_text: 'Le registre unique du personnel recense chaque salarié dès son embauche. D\'autres registres peuvent s\'ajouter selon votre situation.',
       allow_na: false,   // obligation applicable dès le premier salarié
       legal_flag: true, legal_rule: ['LR_REGISTRE_PERSONNEL'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'] }],
+      red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_REGISTRE_PERSONNEL' }],
       applicability: null,
       area_text: 'Les registres obligatoires doivent être tenus à jour en continu.',
       recommendation_by_answer: {
@@ -189,7 +193,7 @@
       help_text: 'Le règlement intérieur fixe notamment les règles d\'hygiène, de sécurité et de discipline. Sa mise à jour suit une procédure précise.',
       allow_na: false,
       legal_flag: true, legal_rule: ['LR_REGLEMENT_INTERIEUR'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'] }],
+      red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_REGLEMENT_INTERIEUR' }],
       applicability: SIZE_50_PLUS,
       area_text: 'Le règlement intérieur doit suivre les évolutions réglementaires et internes.',
       recommendation_by_answer: {
@@ -292,7 +296,7 @@
       help_text: 'Cela inclut le calendrier des mandats, le protocole préélectoral et, en l\'absence de candidat, le procès-verbal correspondant.',
       allow_na: false,
       legal_flag: true, legal_rule: ['LR_CSE'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'] }],
+      red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_CSE' }],
       applicability: { any: [ SIZE_11_PLUS, { field: 'has_cse', in: ['yes', 'in_progress'] } ] },
       area_text: 'Les échéances électorales doivent être anticipées pour éviter une interruption de la représentation du personnel.',
       recommendation_by_answer: {
@@ -375,7 +379,7 @@
       help_text: 'La BDESE rassemble les informations économiques et sociales mises à disposition du CSE.',
       allow_na: false,
       legal_flag: true, legal_rule: ['LR_BDESE'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'] }],
+      red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_BDESE' }],
       applicability: SIZE_50_PLUS,
       area_text: 'La BDESE doit être tenue à jour et accessible au CSE.',
       recommendation_by_answer: {
@@ -392,7 +396,9 @@
       help_text: 'Elles concernent les entreprises où sont constituées une ou plusieurs sections syndicales représentatives. Si ce n\'est pas votre cas, répondez « Non applicable ».',
       allow_na: true, na_label: 'Non applicable (pas de section syndicale représentative)',
       legal_flag: true, legal_rule: ['LR_NAO'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'] }],
+      /* « Je ne sais pas » : l'existence d'une section syndicale représentative (condition de
+         l'obligation) n'est pas établie -> vigilance « À vérifier », pas de red flag. */
+      red_flag_conditions: [{ answers: ['no'], obligation: 'LR_NAO' }],
       applicability: SIZE_50_PLUS,
       area_text: 'Les négociations obligatoires suivent une périodicité fixée par la loi ou par accord.',
       recommendation_by_answer: {
@@ -496,7 +502,7 @@
       /* IMPORTANT : aucune périodicité dans le libellé. Elle vient de LR_ENTRETIEN_PARCOURS. */
       allow_na: false,
       legal_flag: true, legal_rule: ['LR_ENTRETIEN_PARCOURS'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'] }],
+      red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_ENTRETIEN_PARCOURS' }],
       applicability: null,
       area_text: 'Ces entretiens obéissent à une périodicité et à un formalisme réglementaires.',
       recommendation_by_answer: {
@@ -512,9 +518,11 @@
       question: 'Pour les salariés concernés, l\'état des lieux récapitulatif de leur parcours professionnel est-il réalisé et formalisé ?',
       help_text: 'Bilan périodique qui vérifie que le salarié a bénéficié des entretiens et actions prévus. Si aucun salarié n\'a encore l\'ancienneté requise, répondez « Non applicable ».',
       allow_na: true, na_label: 'Non applicable (aucun salarié concerné à ce jour)',
-      legal_flag: true, legal_rule: ['LR_ENTRETIEN_PARCOURS'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'], when: SIZE_50_PLUS }],
-      applicability: SIZE_11_PLUS,
+      legal_flag: true, legal_rule: ['LR_ETAT_DES_LIEUX_PARCOURS'],
+      /* Red flag porté par l'obligation (tout employeur), jamais par la taille. Question INACTIVE tant que
+         LR_ETAT_DES_LIEUX_PARCOURS n'est pas validée (mesures transitoires). */
+      red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_ETAT_DES_LIEUX_PARCOURS' }],
+      applicability: null,
       area_text: 'L\'état des lieux récapitulatif est exigé à une échéance réglementaire.',
       recommendation_by_answer: {
         partial: 'Identifier les salariés arrivant à l\'échéance de l\'état des lieux et vérifier leur dossier.',
@@ -657,7 +665,7 @@
       help_text: 'Indicateurs relatifs aux écarts entre les femmes et les hommes, à calculer et publier chaque année.',
       allow_na: false,
       legal_flag: true, legal_rule: ['LR_INDEX_EGALITE'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'] }],
+      red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_INDEX_EGALITE' }],
       applicability: SIZE_50_PLUS,
       area_text: 'Le calcul et la publication de l\'index suivent un calendrier annuel.',
       recommendation_by_answer: {
@@ -693,7 +701,7 @@
       help_text: 'Le document unique d\'évaluation des risques professionnels recense les risques de chaque unité de travail et les actions de prévention.',
       allow_na: false,   // obligation applicable dès le premier salarié
       legal_flag: true, legal_rule: ['LR_DUERP'],
-      red_flag_conditions: [{ answers: ['no', 'unknown'] }],
+      red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_DUERP' }],
       applicability: null,
       area_text: 'Le DUERP doit refléter les risques réels et être mis à jour selon les règles applicables.',
       recommendation_by_answer: {
@@ -854,7 +862,7 @@
   ];
 
   var API = {
-    version: '0.1.0-phase1',
+    version: '0.2.0',
     ANSWER_SCALES: ANSWER_SCALES,
     PILLARS: PILLARS,
     CONTEXT: CONTEXT,
