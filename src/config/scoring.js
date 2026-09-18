@@ -21,7 +21,12 @@
      *   null                                         toujours vrai
      * Les champs utilisables sont ceux de CONTEXT (questions.js).
      * ------------------------------------------------------------------ */
-    conditions: { fields: ['respondent_role', 'company_size', 'has_cse', 'collective_agreement', 'hr_organization'] },
+    conditions: { fields: ['respondent_role', 'company_size', 'has_cse', 'hr_organization',
+      'collective_agreement_idcc', 'collective_agreement_known', 'forfait_jours'] },
+
+    /* Mise en production : une règle réglementaire n'est active (questions ET red flags) que si elle est
+       vérifiée ET relue par un juriste (`legal_reviewed_at`). En maquette, « vérifiée » suffit. */
+    release: { mode: 'prototype', require_legal_review: true },
 
     /* ------------------------------------------------------------------
      * Scoring
@@ -146,7 +151,7 @@
     disclaimer: 'Cet outil constitue un pré-diagnostic réalisé à partir de vos réponses déclaratives. Il ne constitue ni un audit juridique, ni une certification de conformité. Certaines obligations peuvent varier selon votre effectif, votre convention collective, votre secteur et votre situation particulière.',
 
     /* Mots interdits dans tout texte affiché (contrôlé par validate-config). */
-    forbidden_wording: ['non conforme', 'non-conforme', 'illégal', 'risque juridique majeur', 'en danger', 'sanction'],
+    forbidden_wording: ['non conforme', 'non-conforme', 'illégal', 'risque juridique majeur', 'en danger', 'sanction', 'infraction', 'invalide'],
 
     /* ------------------------------------------------------------------
      * Qualification commerciale — INTERNE, JAMAIS AFFICHÉE
@@ -210,7 +215,9 @@
      * ------------------------------------------------------------------ */
     payload: {
       contact: ['firstname', 'lastname', 'email', 'company'],
-      context: ['respondent_role', 'company_size', 'has_cse', 'collective_agreement', 'hr_organization'],
+      context: ['respondent_role', 'company_size', 'has_cse', 'hr_organization',
+                'collective_agreement_idcc', 'collective_agreement_label', 'collective_agreement_short_name', 'collective_agreement_known'],
+      ccn: ['forfait_jours'],
       scores: ['global_score', 'compliance_score', 'payroll_admin_score', 'employee_relations_score',
                'recruitment_score', 'development_score', 'compensation_score', 'management_qvct_score',
                'hr_operations_data_score'],
@@ -222,6 +229,11 @@
       detail: ['method_version', 'pillar_details', 'lead_signals', 'audit_metrics'],   // pilier : score, statut, nb de questions applicables
       raw: 'answers_json'   // intégralité des réponses : [{ question_id, answer_id, score, applicable, red_flag }]
     },
+
+    /* Interface. Avance automatique uniquement sur les écrans à choix unique (une question, une
+       réponse) : retour visuel immédiat, puis écran suivant après `auto_advance_ms`. Jamais sur les
+       écrans à plusieurs champs ou actions (recherche de convention collective, formulaire). */
+    ui: { auto_advance_ms: 300 },
 
     /* Accueil. Durée provisoire tant qu'aucune mesure réelle n'existe : mieux vaut sous-promettre. */
     hero: {

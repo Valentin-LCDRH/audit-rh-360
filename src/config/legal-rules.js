@@ -10,7 +10,8 @@
  *
  * `verified_at` = date de lecture de la source. `source_checked_at` = date « Vérifié le » affichée
  * par la source quand elle existe. `validated_by` = contre-signature humaine (juriste / DRH),
- * vide tant qu'elle n'a pas eu lieu.
+ * vide tant qu'elle n'a pas eu lieu ; `legal_reviewed_at` = date de cette relecture. En mode production
+ * (scoring.js › release), une règle sans `legal_reviewed_at` est désactivée (questions et red flags).
  *
  * Sources autorisées : service-public.gouv.fr, legifrance.gouv.fr, travail-emploi.gouv.fr,
  * urssaf.fr, eur-lex.europa.eu. Jamais de cabinet, blog ou concurrent.
@@ -36,7 +37,7 @@
       periodicity: 'Tenue permanente, mise à jour à chaque entrée et sortie.',
       articles: ['C. trav. L1221-13 à L1221-15-1'],
       source: [{ label: 'Entreprendre.Service-Public — Registre unique du personnel (F1784)', url: SP + 'F1784' }],
-      source_checked_at: '2026-02-05', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2026-02-05', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'Conditions et durées de conservation des autres registres non détaillées par la fiche : la question reste générique (« registres applicables »).'
     },
 
@@ -49,7 +50,7 @@
       periodicity: 'Information permanente, à actualiser à chaque changement.',
       articles: ['C. trav. D4711-1', 'R4227-34 à R4227-41', 'L3171-1', 'L1152-4', 'L1153-1 à L1153-6'],
       source: [{ label: 'Entreprendre.Service-Public — Affichage obligatoire (F23106)', url: SP + 'F23106' }],
-      source_checked_at: '2026-07-08', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2026-07-08', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'Liste lue en synthèse. La question ne détaille pas la liste : elle renvoie à une revue.'
     },
 
@@ -65,7 +66,7 @@
         { label: 'Entreprendre.Service-Public — Règlement intérieur (F1905)', url: SP + 'F1905' },
         { label: 'Légifrance — L1311-2', url: LF + 'LEGIARTI000038610176/' }
       ],
-      source_checked_at: '2026-05-28', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2026-05-28', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'En dessous de 50 salariés, le règlement intérieur est facultatif : la question n\'est pas posée.'
     },
 
@@ -81,7 +82,7 @@
         { label: 'Entreprendre.Service-Public — CSE : élections (F34474)', url: SP + 'F34474' },
         { label: 'Légifrance — L2314-33 (version issue de la loi n° 2025-989)', url: LF + 'LEGIARTI000052437191' }
       ],
-      source_checked_at: null, verified_at: CHECKED, validated_by: null,
+      source_checked_at: null, verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'L2314-33 modifié par la loi n° 2025-989 du 24/10/2025 (limite de mandats successifs supprimée — à confirmer, sans impact sur la question).'
     },
 
@@ -94,7 +95,7 @@
       periodicity: 'Mise à jour bimestrielle (< 300) ou mensuelle (≥ 300).',
       articles: ['C. trav. L2312-18', 'R2312-7 à R2312-15'],
       source: [{ label: 'Entreprendre.Service-Public — BDESE (F32193)', url: SP + 'F32193' }],
-      source_checked_at: '2025-10-27', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2025-10-27', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'Détail des rubriques par effectif non relu : la question reste générique.'
     },
 
@@ -107,7 +108,7 @@
       periodicity: 'Au moins tous les 4 ans (ordre public) ; annuelle / triennale à défaut d\'accord.',
       articles: ['C. trav. L2242-1', 'L2242-2', 'L2242-10', 'L2242-11', 'L2242-13'],
       source: [{ label: 'Légifrance — Code du travail, L2242-1 et suivants', url: 'https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072050/LEGISCTA000006189527/' }],
-      source_checked_at: null, verified_at: CHECKED, validated_by: null,
+      source_checked_at: null, verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'L2242-10, L2242-11, L2242-13 lus en synthèse seulement. Le filtre « à partir de 50 salariés » est une simplification (des délégués syndicaux peuvent exister en dessous, via un élu du CSE) : voir LEGAL_VALIDATION_REQUIRED.'
     },
 
@@ -120,7 +121,7 @@
       periodicity: 'Annuelle (publication au plus tard le 1er mars).',
       articles: ['C. trav. L1142-8 à L1142-11', 'D1142-4 à D1142-14'],
       source: [{ label: 'Entreprendre.Service-Public — Index de l\'égalité professionnelle (F35103)', url: SP + 'F35103' }],
-      source_checked_at: '2025-07-10', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2025-07-10', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'Régime en vigueur à la date de vérification. Le projet de loi de transposition de la directive (UE) 2023/970 prévoit de le faire évoluer : voir LEGAL_WATCH.'
     },
 
@@ -136,7 +137,7 @@
         { label: 'Légifrance — Directive (UE) 2023/970', url: 'https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000047656481' },
         { label: 'Entreprendre.Service-Public — actualité du 10/09/2026 (projet de loi)', url: 'https://entreprendre.service-public.gouv.fr/actualites/A19060' }
       ],
-      source_checked_at: '2026-09-10', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2026-09-10', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'Délai de transposition : 7 juin 2026. Au 18/09/2026, aucune loi ni ordonnance de transposition sur Légifrance ; projet de loi présenté en Conseil des ministres le 10/09/2026, en attente d\'examen parlementaire. Seuils et calendrier : non stabilisés.'
     },
 
@@ -153,7 +154,7 @@
         { label: 'Légifrance — Loi n° 2025-989, art. 3', url: 'https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000052430965' },
         { label: 'Service-Public — Entretien professionnel (F32040)', url: 'https://www.service-public.gouv.fr/particuliers/vosdroits/F32040' }
       ],
-      source_checked_at: '2026-02-20', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2026-02-20', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'La périodicité n\'est JAMAIS écrite dans les libellés : elle est lue ici. Mesures transitoires (cycles de 6 ans en cours, accords existants applicables jusqu\'au 01/10/2026) : voir LEGAL_VALIDATION_REQUIRED.'
     },
 
@@ -169,7 +170,7 @@
         { label: 'Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)', url: LF + 'LEGIARTI000053279288' },
         { label: 'Service-Public — Entretien professionnel (F32040)', url: 'https://www.service-public.gouv.fr/particuliers/vosdroits/F32040' }
       ],
-      source_checked_at: '2026-02-20', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2026-02-20', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'Mesures transitoires non vérifiées : passage de 6 à 8 ans pour les cycles en cours, application aux accords collectifs existants à compter du 01/10/2026. C6 reste INACTIVE tant que ce point n\'est pas documenté.'
     },
 
@@ -185,8 +186,28 @@
         { label: 'Entreprendre.Service-Public — DUERP (F35360)', url: SP + 'F35360' },
         { label: 'Légifrance — L4121-3-1', url: LF + 'LEGIARTI000043893919' }
       ],
-      source_checked_at: '2026-07-22', verified_at: CHECKED, validated_by: null,
+      source_checked_at: '2026-07-22', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'Dépôt dématérialisé prévu par L4121-3-1 : fonctionnement effectif du portail non vérifié (non utilisé par la question). Sanctions modifiées par la loi n° 2026-534 du 25/06/2026 : non utilisées (le produit ne parle pas de sanctions).'
+    },
+
+    LR_SYNTEC_FORFAIT_JOURS: {
+      id: 'LR_SYNTEC_FORFAIT_JOURS', status: 'verified',
+      title: 'Forfait annuel en jours — Syntec (IDCC 1486)',
+      legal_rule: 'Code du travail : le forfait annuel en jours exige l\'accord du salarié et une convention individuelle écrite (L3121-55), un accord collectif le prévoyant (L3121-63, entreprise ou à défaut branche) et comportant les clauses de L3121-64 ; il est réservé aux cadres autonomes et aux salariés à durée du travail non prédéterminable disposant d\'une réelle autonomie (L3121-58) ; l\'employeur s\'assure régulièrement que la charge de travail est raisonnable (L3121-60) ; repos quotidien et hebdomadaire restent dus (L3121-62). À défaut de clauses de suivi dans l\'accord : document de contrôle, charge compatible avec les repos et entretien annuel (L3121-65). Syntec (accord du 22 juin 1999 modifié par les avenants du 1er avril 2014 et n° 2 du 13 décembre 2022, étendu par arrêté du 12 juin 2024, en vigueur depuis le 1er juillet 2024) : éligibilité (large autonomie et, au minimum, position 2.3 de la grille des cadres, ou rémunération supérieure à 2 fois le plafond annuel de la sécurité sociale, ou mandataire social) ; convention individuelle écrite précisant missions, nombre de jours, rémunération et entretiens ; 218 jours maximum (solidarité incluse) ; rémunération au moins égale à 120 % du minimum conventionnel (122 % en position 2.3), vérifiée chaque année ; suivi des jours objectif, fiable et contradictoire ; repos de 11 h / 35 h et amplitude maximale de 13 h ; procédure d\'alerte sur la charge ; au moins un entretien par an.',
+      applicability: 'Entreprises appliquant la convention IDCC 1486 et ayant des salariés au forfait annuel en jours (déclaration de l\'utilisateur). Un accord d\'entreprise sur le forfait jours prime sur l\'accord de branche (L3121-63).',
+      applicability_condition: { all: [{ field: 'collective_agreement_idcc', in: ['1486'] }, { field: 'forfait_jours', in: ['yes'] }] },
+      periodicity: { interview_min_per_year: 1, remuneration_check: 'annuelle', max_days: 218 },
+      articles: ['C. trav. L3121-55', 'L3121-58 à L3121-66', 'Accord Syntec du 22 juin 1999, chap. II, art. 4 (avenants 2014 et n° 2 du 13/12/2022)'],
+      source: [
+        { label: 'Légifrance — Code du travail, conventions de forfait (L3121-53 à L3121-66)', url: 'https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072050/LEGISCTA000006189633/' },
+        { label: 'Légifrance — L3121-64', url: LF + 'LEGIARTI000036262805' },
+        { label: 'Légifrance — L3121-65', url: LF + 'LEGIARTI000036262800' },
+        { label: 'Légifrance (KALI) — Syntec, avenant n° 2 du 13 décembre 2022 à l\'accord du 22 juin 1999', url: 'https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000047348407' },
+        { label: 'Légifrance (JORF) — Arrêté d\'extension du 12 juin 2024', url: 'https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000049747149' },
+        { label: 'Légifrance (KALI) — Syntec, avenant du 1er avril 2014', url: 'https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000029264464' }
+      ],
+      source_checked_at: '2026-09-18', verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
+      notes: 'La question reste générique (« conditions prévues par votre convention collective ») : aucun seuil n\'est affiché ni utilisé pour déclencher un red flag. Le red flag repose sur la déclaration de l\'utilisateur (Non / Je ne sais pas). Points d\'interprétation listés dans LEGAL_VALIDATION_REQUIRED (non bloquants en maquette ; en production, la règle reste désactivée tant que legal_reviewed_at est vide).'
     },
 
     LR_EFFECTIF: {
@@ -198,7 +219,7 @@
       periodicity: null,
       articles: ['CSS L130-1', 'C. trav. L2311-2', 'L2312-2'],
       source: [{ label: 'Légifrance — CSS L130-1', url: LF + 'LEGIARTI000051287151' }],
-      source_checked_at: null, verified_at: CHECKED, validated_by: null,
+      source_checked_at: null, verified_at: CHECKED, validated_by: null, legal_reviewed_at: null,
       notes: 'Le diagnostic utilise la tranche déclarée comme approximation. Seuils du Code du travail (CSE, RI, BDESE) : 12 mois consécutifs. Seuils relevant de L130-1 CSS : moyenne annuelle et franchissement sur 5 années civiles consécutives. Choix de simplification à valider.'
     }
   };
@@ -215,6 +236,8 @@
       point: 'Valider le filtre « à partir de 50 salariés » + option « Non applicable » plutôt qu\'une question de contexte sur la présence de délégués syndicaux.' },
     { rule: 'LR_ETAT_DES_LIEUX_PARCOURS', blocking: true, questions: ['C6'],
       point: 'Applicabilité exacte de l\'état des lieux pendant la transition (cycles de 6 ans en cours, accords existants au 01/10/2026) à documenter sur source officielle (Q&R du Ministère du Travail) avant d\'activer C6.' },
+    { rule: 'LR_SYNTEC_FORFAIT_JOURS', blocking: false, questions: ['CCN1486_FJ'],
+      point: 'À valider par un juriste avant production : (1) sort des conventions individuelles signées avant le 01/07/2024 (ancien seuil position 3, deux entretiens par an) — aucune disposition transitoire trouvée ; (2) portée du critère « 2 fois le PASS » (salariés sous la position 2.3, non-cadres) et articulation avec L3121-58 ; (3) seuil de rémunération (120 % / 122 %) pour un forfait réduit ou une année incomplète ; (4) plafond conventionnel de 230 jours en cas de renonciation face au plafond supplétif de 235 jours ; (5) marge d\'un accord d\'entreprise pour déroger à la branche ; (6) conséquences d\'un suivi défaillant (jurisprudence non lue) ; (7) textes non lus en détail : chapitre X « déconnexion » (avenant 2022), article 4.4 consolidé, annexe II de classification, L3131-1 et L3132-2.' },
     { rule: 'LR_ENTRETIEN_PARCOURS', blocking: false, questions: ['Q17'],
       point: 'Q17 reste active (libellé sans périodicité). Confirmer les mesures transitoires de la loi n° 2025-989 pour la périodicité des entretiens.' }
   ];

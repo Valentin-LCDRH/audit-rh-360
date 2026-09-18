@@ -90,3 +90,20 @@ RRH de PME, DRH d'ETI), dont au moins un sur mobile.
 - Maquette propre par défaut : outils de test via `?test=1` ; mesures du dernier audit terminé conservées localement ;
   mention « Maquette de test : aucun email n'est envoyé » toujours affichée tant que les intégrations sont simulées.
 - Note : en local, faire un rechargement forcé après une mise à jour (cache du navigateur).
+
+## Itération 5 (2026-09-18) — convention collective et module Syntec (V1)
+- Avance automatique à 300 ms (config `ui.auto_advance_ms`) avec retour visuel immédiat, sur les écrans à
+  choix unique uniquement ; jamais sur la recherche de convention ni sur le formulaire.
+- Convention collective : recherche avec suggestions (nom, nom d'usage, alias, IDCC) → sélection normalisée
+  dans `src/data/ccn-list.js` ; alternatives explicites `unknown` / `none`. Stockage : `collective_agreement_idcc`,
+  `_label`, `_short_name`, `_known`. Les règles se déclenchent uniquement sur l'IDCC.
+- Modules : `src/config/ccn-modules.js` (IDCC → contexte + contrôles). V1 : 1486 → forfait jours.
+  Contexte « forfait jours » hors score ; contrôle `CCN1486_FJ` (C, poids 3, pilier 1), red flag = Non / Je ne sais
+  pas + règle `LR_SYNTEC_FORFAIT_JOURS` vérifiée et applicable.
+- Garde-fou de production : `release.mode = 'production'` désactive toute règle sans `legal_reviewed_at`.
+- Tests : 40 / 40 (10 ajoutés : CCN 1 à 9, production, payload CCN).
+- Vérifié dans le navigateur (ordinateur et mobile 375 px) : recherche « Syntec », « CCN Syntec », « IDCC 1486 »,
+  « 1486 », « métallurgie » ; compteur de contexte 5 → 6 après sélection de Syntec ; questionnaire annoncé à 35
+  dès la première question ; contrôle en pilier 1 (5/35) ; red flag + action « Vérifier le cadre de vos forfaits jours ».
+- Durée estimée (50-249, CSE) : autre convention ~10,7 min · Syntec sans forfait ~10,9 min (+1 écran) ·
+  Syntec avec forfait ~11,2 min (+1 écran, +1 question).

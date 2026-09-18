@@ -5,6 +5,8 @@
 (function () {
   'use strict';
   var Q = globalThis.ARH_QUESTIONS, R = globalThis.ARH_RULES, L = globalThis.ARH_LEGAL, V = globalThis.ARH_VALIDATE;
+  var MODS = (globalThis.ARH_CCN_MODULES || { modules: {} }).modules, CCN = globalThis.ARH_CCN_LIST || { entries: [], special: [] };
+  var MODQ = []; Object.keys(MODS).forEach(function (k) { (MODS[k].questions || []).forEach(function (q) { MODQ.push(q); }); });
   var lines = [];
   function w(s) { lines.push(s === undefined ? '' : s); }
 
@@ -43,7 +45,7 @@
   w();
 
   Q.PILLARS.forEach(function (p) {
-    var qs = Q.QUESTIONS.filter(function (q) { return q.pillar === p.id; });
+    var qs = Q.QUESTIONS.concat(MODQ).filter(function (q) { return q.pillar === p.id; });
     w('## Pilier ' + p.order + '/8 — ' + p.label);
     w();
     w('Score CRM : `' + p.score_field + '` · Point fort : « ' + p.strength_text + ' » · À structurer : « ' + p.weak_text + ' »');
@@ -89,6 +91,16 @@
     });
   });
 
+  w('## Convention collective et modules conventionnels');
+  w();
+  w('Sélection normalisée par IDCC (' + CCN.entries.length + ' conventions dans la liste de démarrage · source : ' + CCN.source.label + ', ' + CCN.source.retrieved_at + (CCN.source.complete ? '' : ' · liste officielle complète à importer') + '). Alternatives : ' + CCN.special.map(function (x) { return '« ' + x.label + ' » (`' + x.id + '`)'; }).join(' · ') + '.');
+  w();
+  Object.keys(MODS).forEach(function (idcc) {
+    var m = MODS[idcc];
+    w('- **IDCC ' + idcc + ' → module `' + m.id + '`** : contexte ' + (m.context_questions || []).map(function (c) { return '« ' + c.label + ' » (' + c.options.map(function (o) { return o.label; }).join(' / ') + ', hors score)'; }).join(' ; ') +
+      ' · contrôles : ' + (m.questions || []).map(function (q) { return '`' + q.id + '` (' + cond(q.applicability) + ')'; }).join(', '));
+  });
+  w();
   w('## Seuils de maturité');
   w();
   R.maturity_levels.forEach(function (m) { w('- ≥ ' + m.min + ' : **' + m.label + '** — « ' + R.result_texts.global_by_level[m.id] + ' »'); });

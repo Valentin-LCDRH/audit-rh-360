@@ -14,7 +14,7 @@
 - **Votre fonction** (`respondent_role`) : Dirigeant / CEO `ceo` · DRH `drh` · RRH `rrh` · Head of People / People Lead `head_of_people` · Responsable administratif / financier `daf` · Autre `other`
 - **Effectif de votre entreprise** (`company_size`) : 1 à 10 salariés `1-10` · 11 à 49 salariés `11-49` · 50 à 249 salariés `50-249` · 250 à 999 salariés `250-999` · 1 000 salariés et plus `1000+`
 - **Disposez-vous d'un CSE ?** (`has_cse`) : Oui `yes` · Non `no` · En cours de mise en place `in_progress` · Non concerné / Je ne sais pas `unknown`
-- **Convention collective** (`collective_agreement`, facultatif) : texte libre
+- **Quelle convention collective appliquez-vous ?** (`collective_agreement`) : texte libre
 - **Qui porte les RH aujourd'hui ?** (`hr_organization`) : Une équipe RH structurée en interne `internal_team` · Une à deux personnes dédiées aux RH `small_team` · Principalement la direction (dirigeant, DAF…) `leadership` · Principalement un prestataire externe (expert-comptable, consultant…) `external` · Autre organisation `other`
 
 ## Pilier 1/8 — Conformité & fondamentaux RH
@@ -104,6 +104,27 @@ Score CRM : `compliance_score` · Point fort : « Vos documents et registres de 
 | Partiellement / à vérifier | 50 | Faire relire le règlement intérieur au regard des évolutions réglementaires et vérifier la procédure suivie lors de sa dernière modification. |
 | Non / pas encore | 0 | Mettre en place ou actualiser le règlement intérieur en respectant la procédure applicable (consultation, dépôt, publicité). |
 | Je ne sais pas | 0 + vigilance | Vérifier l'existence du règlement intérieur, sa date de mise à jour et la procédure suivie. |
+
+### CCN1486_FJ — Cadre des forfaits annuels en jours
+
+**Avez-vous vérifié que vos conventions de forfait annuel en jours respectent les conditions prévues par votre convention collective et que leur suivi est correctement réalisé ?**
+
+| Champ | Valeur |
+|---|---|
+| Type · poids · risque | C · 3 — critique · eleve |
+| Condition d'affichage | collective_agreement_idcc ∈ {1486} ET forfait_jours ∈ {yes} |
+| Red flag | Oui si « Non / pas encore » ou « Je ne sais pas » |
+| Legal flag · règle | Oui · `LR_SYNTEC_FORFAIT_JOURS` (verified) |
+| Source · vérifiée le | [Légifrance — Code du travail, conventions de forfait (L3121-53 à L3121-66)](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072050/LEGISCTA000006189633/) ; [Légifrance — L3121-64](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000036262805) ; [Légifrance — L3121-65](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000036262800) ; [Légifrance (KALI) — Syntec, avenant n° 2 du 13 décembre 2022 à l'accord du 22 juin 1999](https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000047348407) ; [Légifrance (JORF) — Arrêté d'extension du 12 juin 2024](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000049747149) ; [Légifrance (KALI) — Syntec, avenant du 1er avril 2014](https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000029264464) · 2026-09-18 |
+| Tags commerciaux (internes) | `audit_rh` |
+| Aide (tooltip) | La vérification porte notamment sur : l'éligibilité des salariés concernés, la convention individuelle écrite, les conditions prévues par votre convention collective, le nombre de jours, la rémunération, le suivi de la charge de travail, le respect des temps de repos et les entretiens de suivi. |
+
+| Réponse | Score | Recommandation |
+|---|---|---|
+| Oui, totalement | 100 | — (maîtrisé) |
+| Partiellement / à vérifier | 50 | Vérifier le cadre applicable à vos forfaits jours : revoir, salarié par salarié, l'éligibilité, la convention individuelle écrite et le suivi de la charge de travail. |
+| Non / pas encore | 0 | Vérifier le cadre applicable à vos forfaits jours : revoir l'éligibilité des salariés concernés, les conventions individuelles écrites, les conditions conventionnelles et le suivi de la charge de travail. |
+| Je ne sais pas | 0 + vigilance | Identifier les salariés au forfait jours, puis vérifier leurs conventions individuelles, les conditions conventionnelles applicables et le suivi réalisé. |
 
 ## Pilier 2/8 — Paie & administration RH
 
@@ -810,6 +831,12 @@ Score CRM : `hr_operations_data_score` · Point fort : « Votre fonction RH est 
 | C. Les principaux KPI sont utilisés dans le pilotage RH. | 67 | Présenter les indicateurs RH dans les arbitrages de direction et mesurer l'impact des actions. |
 | D. Les données RH alimentent régulièrement les arbitrages de la direction et permettent de mesurer l'impact des actions engagées. | 100 | — (point fort) |
 
+## Convention collective et modules conventionnels
+
+Sélection normalisée par IDCC (29 conventions dans la liste de démarrage · source : Code du travail numérique (Ministère du Travail) — vérification IDCC par IDCC, 2026-09-18 · liste officielle complète à importer). Alternatives : « Je ne connais pas ma convention collective » (`unknown`) · « Mon entreprise n'applique pas de convention collective » (`none`).
+
+- **IDCC 1486 → module `syntec`** : contexte « Certains de vos salariés sont-ils au forfait annuel en jours ? » (Oui / Non / Je ne sais pas, hors score) · contrôles : `CCN1486_FJ` (collective_agreement_idcc ∈ {1486} ET forfait_jours ∈ {yes})
+
 ## Seuils de maturité
 
 - ≥ 80 : **Bien structuré** — « Votre organisation RH apparaît bien structurée. »
@@ -851,6 +878,7 @@ Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_
 | `LR_ENTRETIEN_PARCOURS` Entretien de parcours professionnel et état des lieux récapitulatif | verified | Tout employeur ; abondement correctif du CPF à partir de 50 salariés. | {"first_interview":"au cours de la 1re année","interview_every_years":4,"summary_review_every_years":8} | [Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053279288)<br>[Légifrance — Loi n° 2025-989, art. 3](https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000052430965)<br>[Service-Public — Entretien professionnel (F32040)](https://www.service-public.gouv.fr/particuliers/vosdroits/F32040) | 2026-09-18 |
 | `LR_ETAT_DES_LIEUX_PARCOURS` État des lieux récapitulatif du parcours professionnel | legal_validation_required | Tout employeur, pour les salariés atteignant l'ancienneté prévue par L6315-1. L'abondement du CPF (≥ 50 salariés) est une conséquence, pas une condition de l'obligation. | {"summary_review_every_years":8} | [Légifrance — L6315-1 (en vigueur depuis le 31/12/2025)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053279288)<br>[Service-Public — Entretien professionnel (F32040)](https://www.service-public.gouv.fr/particuliers/vosdroits/F32040) | 2026-09-18 |
 | `LR_DUERP` Document unique d'évaluation des risques professionnels | verified | Tout employeur, dès le premier salarié. | Au moins annuelle à partir de 11 salariés ; à chaque changement significatif pour tous. | [Entreprendre.Service-Public — DUERP (F35360)](https://entreprendre.service-public.gouv.fr/vosdroits/F35360)<br>[Légifrance — L4121-3-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043893919) | 2026-09-18 |
+| `LR_SYNTEC_FORFAIT_JOURS` Forfait annuel en jours — Syntec (IDCC 1486) | verified | Entreprises appliquant la convention IDCC 1486 et ayant des salariés au forfait annuel en jours (déclaration de l'utilisateur). Un accord d'entreprise sur le forfait jours prime sur l'accord de branche (L3121-63). | {"interview_min_per_year":1,"remuneration_check":"annuelle","max_days":218} | [Légifrance — Code du travail, conventions de forfait (L3121-53 à L3121-66)](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006072050/LEGISCTA000006189633/)<br>[Légifrance — L3121-64](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000036262805)<br>[Légifrance — L3121-65](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000036262800)<br>[Légifrance (KALI) — Syntec, avenant n° 2 du 13 décembre 2022 à l'accord du 22 juin 1999](https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000047348407)<br>[Légifrance (JORF) — Arrêté d'extension du 12 juin 2024](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000049747149)<br>[Légifrance (KALI) — Syntec, avenant du 1er avril 2014](https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000029264464) | 2026-09-18 |
 | `LR_EFFECTIF` Appréciation de l'effectif pour les seuils | legal_validation_required | Transverse. | — | [Légifrance — CSS L130-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051287151) | 2026-09-18 |
 
 ## LEGAL_VALIDATION_REQUIRED
@@ -859,6 +887,7 @@ Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_
 - non bloquant · `LR_EFFECTIF` (Q4, Q9, C3, C4, C5) — Valider l'usage de la tranche d'effectif déclarée (sans tester la durée de franchissement du seuil) et la mention correspondante dans l'aide contextuelle.
 - non bloquant · `LR_NAO` (C4) — Valider le filtre « à partir de 50 salariés » + option « Non applicable » plutôt qu'une question de contexte sur la présence de délégués syndicaux.
 - ⛔ bloquant · `LR_ETAT_DES_LIEUX_PARCOURS` (C6) — Applicabilité exacte de l'état des lieux pendant la transition (cycles de 6 ans en cours, accords existants au 01/10/2026) à documenter sur source officielle (Q&R du Ministère du Travail) avant d'activer C6.
+- non bloquant · `LR_SYNTEC_FORFAIT_JOURS` (CCN1486_FJ) — À valider par un juriste avant production : (1) sort des conventions individuelles signées avant le 01/07/2024 (ancien seuil position 3, deux entretiens par an) — aucune disposition transitoire trouvée ; (2) portée du critère « 2 fois le PASS » (salariés sous la position 2.3, non-cadres) et articulation avec L3121-58 ; (3) seuil de rémunération (120 % / 122 %) pour un forfait réduit ou une année incomplète ; (4) plafond conventionnel de 230 jours en cas de renonciation face au plafond supplétif de 235 jours ; (5) marge d'un accord d'entreprise pour déroger à la branche ; (6) conséquences d'un suivi défaillant (jurisprudence non lue) ; (7) textes non lus en détail : chapitre X « déconnexion » (avenant 2022), article 4.4 consolidé, annexe II de classification, L3131-1 et L3132-2.
 - non bloquant · `LR_ENTRETIEN_PARCOURS` (Q17) — Q17 reste active (libellé sans périodicité). Confirmer les mesures transitoires de la loi n° 2025-989 pour la périodicité des entretiens.
 
 ## Veille (règles vérifiées mais mouvantes)

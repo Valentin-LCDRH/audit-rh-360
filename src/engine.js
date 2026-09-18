@@ -16,8 +16,20 @@
   /* ================================================================
    * Configuration
    * ================================================================ */
+  /* Les modules conventionnels (ccn-modules.js) ajoutent leurs questions à la liste générale : leur
+   * applicabilité porte la condition d'IDCC. Ajouter un module ne touche ni au moteur ni à l'interface. */
+  var cachedDefault = null;
   function defaultConfig() {
-    return { Q: root.ARH_QUESTIONS, R: root.ARH_RULES, L: root.ARH_LEGAL };
+    if (cachedDefault && cachedDefault.src === root.ARH_QUESTIONS) return cachedDefault;
+    var base = root.ARH_QUESTIONS, mods = (root.ARH_CCN_MODULES && root.ARH_CCN_MODULES.modules) || {};
+    var extra = [];
+    Object.keys(mods).forEach(function (idcc) { (mods[idcc].questions || []).forEach(function (q) { extra.push(q); }); });
+    var Q = {};
+    Object.keys(base).forEach(function (k) { Q[k] = base[k]; });
+    Q.QUESTIONS = base.QUESTIONS.concat(extra);
+    cachedDefault = { Q: Q, R: root.ARH_RULES, L: root.ARH_LEGAL, CCN: root.ARH_CCN_LIST || { entries: [], special: [] },
+      MOD: root.ARH_CCN_MODULES || { modules: {} }, src: base };
+    return cachedDefault;
   }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
@@ -25,13 +37,18 @@
    *   { rules: { LR_X: 'verified' }, questions: { C5: { enabled: false } } }
    * Sert à démontrer qu'activer Q24 ou désactiver l'Index ne touche ni au moteur ni à l'interface. */
   function withOverrides(cfg, over) {
-    var c = { Q: clone(cfg.Q), R: cfg.R, L: clone(cfg.L) };
+    var c = { Q: clone(cfg.Q), R: over.release ? mergeRelease(cfg.R, over.release) : cfg.R, L: clone(cfg.L), CCN: cfg.CCN, MOD: cfg.MOD };
     over = over || {};
     Object.keys(over.rules || {}).forEach(function (id) { if (c.L.RULES[id]) c.L.RULES[id].status = over.rules[id]; });
     Object.keys(over.questions || {}).forEach(function (id) {
       c.Q.QUESTIONS.forEach(function (q) { if (q.id === id) Object.keys(over.questions[id]).forEach(function (k) { q[k] = over.questions[id][k]; }); });
     });
     return c;
+  }
+
+  function mergeRelease(R, release) {
+    var r = {}; Object.keys(R).forEach(function (k) { r[k] = R[k]; });
+    r.release = release; return r;
   }
 
   /* ================================================================
@@ -47,7 +64,14 @@
     return false;
   }
 
-  function ruleVerified(id, cfg) { var r = cfg.L.RULES[id]; return !!r && r.status === 'verified'; }
+  /* Une règle est active si elle est vérifiée ; en production, elle doit AUSSI avoir été relue par un
+   * juriste (`legal_reviewed_at`). Sinon, ses questions et ses red flags restent désactivés. */
+  function ruleVerified(id, cfg) {
+    var r = cfg.L.RULES[id];
+    if (!r || r.status !== 'verified') return false;
+    var rel = cfg.R.release || {};
+    return !(rel.mode === 'production' && rel.require_legal_review && !r.legal_reviewed_at);
+  }
   /* Une obligation s'applique si elle est vérifiée ET que son champ d'application couvre le contexte. */
   function obligationApplies(id, ctx, cfg) {
     return ruleVerified(id, cfg) && evalCond(cfg.L.RULES[id].applicability_condition, ctx);
@@ -92,6 +116,59 @@
     return cfg.Q.PILLARS.slice().sort(function (a, b) { return a.order - b.order; })
       .map(function (p) { return { pillar: p, questions: qs.filter(function (q) { return q.pillar === p.id; }) }; })
       .filter(function (x) { return x.questions.length > 0; });
+  }
+
+  /* ================================================================
+   * Contexte (avec questions de contextualisation des modules conventionnels)
+   * ================================================================ */
+  function moduleFor(ctx, cfg) {
+    var idcc = ctx && ctx.collective_agreement_idcc;
+    return idcc && cfg.MOD.modules[idcc] ? cfg.MOD.modules[idcc] : null;
+  }
+  /* Écrans de contexte : la liste générale + les questions du module dont l'IDCC est sélectionné,
+   * insérées juste après la question « convention collective ». Elles ne comptent jamais dans le score. */
+  function contextSteps(ctx, cfg) {
+    cfg = cfg || defaultConfig();
+    var steps = [], mod = moduleFor(ctx, cfg);
+    cfg.Q.CONTEXT.forEach(function (f) {
+      steps.push(f);
+      if (f.type === 'ccn_search' && mod) (mod.context_questions || []).forEach(function (c) { steps.push(c); });
+    });
+    return steps;
+  }
+
+  /* Recherche de convention : « Syntec », « CCN Syntec », « IDCC 1486 », « 1486 », partie du nom.
+   * Retourne toujours des entrées normalisées de la liste ; le texte tapé ne sert jamais de règle. */
+  function norm(t) {
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  var CCN_STOP = { ccn: 1, idcc: 1, convention: 1, collective: 1, conventions: 1, collectives: 1, nationale: 1, national: 1, de: 1, des: 1, du: 1, la: 1, le: 1, les: 1, et: 1, d: 1, l: 1 };
+  function searchAgreements(query, cfg, limit) {
+    cfg = cfg || defaultConfig();
+    var tokens = norm(query).split(' ').filter(function (t) { return t && !CCN_STOP[t]; });
+    if (!tokens.length) return [];
+    var digits = tokens.filter(function (t) { return /^\d+$/.test(t); }), words = tokens.filter(function (t) { return !/^\d+$/.test(t); });
+    var out = [];
+    cfg.CCN.entries.forEach(function (e) {
+      var hay = ' ' + norm([e.label, e.display || '', e.short_name || '', (e.aliases || []).join(' ')].join(' ')) + ' ';
+      var okDigits = digits.every(function (d) { return e.idcc === d.replace(/^0+/, '') || e.idcc.indexOf(d.replace(/^0+/, '')) === 0; });
+      var okWords = words.every(function (w) { return hay.indexOf(' ' + w) >= 0; });
+      if (!okDigits || !okWords) return;
+      var exact = digits.some(function (d) { return e.idcc === d.replace(/^0+/, ''); }) ||
+        words.some(function (w) { return norm(e.short_name) === w; });
+      out.push({ e: e, rank: exact ? 0 : 1 });
+    });
+    return out.sort(function (a, b) { return (a.rank - b.rank) || (Number(a.e.idcc) - Number(b.e.idcc)); })
+      .slice(0, limit || 8).map(function (x) { return x.e; });
+  }
+  /* Valeurs de contexte stockées pour une convention sélectionnée ou une alternative explicite. */
+  function agreementContext(choice, cfg) {
+    cfg = cfg || defaultConfig();
+    var sp = (cfg.CCN.special || []).filter(function (x) { return x.id === choice; })[0];
+    if (sp) return { collective_agreement_idcc: null, collective_agreement_label: sp.label, collective_agreement_short_name: null, collective_agreement_known: sp.id };
+    var e = cfg.CCN.entries.filter(function (x) { return x.idcc === String(choice); })[0];
+    if (!e) return null;
+    return { collective_agreement_idcc: e.idcc, collective_agreement_label: e.label, collective_agreement_short_name: e.short_name || null, collective_agreement_known: 'known' };
   }
 
   /* ================================================================
@@ -210,7 +287,7 @@
       listed[it.question_id] = true;
       return {
         priority: priority, tone: tone, question_id: it.question_id, pillar: it.pillar,
-        pillar_label: PB[it.pillar].label, title: it.short_label,
+        pillar_label: PB[it.pillar].label, title: it.q.action_title || it.short_label, subject: it.short_label,
         description: description || it.q.area_text,
         reason: tpl(R.reason_templates[reasonKey], { answer: it.answer_label, pillar: PB[it.pillar].label }),
         recommendation: it.q.recommendation_by_answer[it.answer_id] || null,
@@ -386,13 +463,16 @@
     var p = {};
     cfg.R.payload.contact.forEach(function (k) { p[k] = contact[k] ? String(contact[k]).trim() : ''; });
     cfg.R.payload.context.forEach(function (k) { p[k] = ctx[k] || ''; });
+    /* forfait_jours n'a de sens que si le module de la convention sélectionnée le pose. */
+    var mod = moduleFor(ctx, cfg);
+    p.forfait_jours = mod && (mod.context_questions || []).some(function (c) { return c.id === 'forfait_jours'; }) ? (ctx.forfait_jours || '') : '';
     p.global_score = res.global.display_score;
     res.pillars.forEach(function (pl) { p[pl.score_field] = pl.evaluated ? pl.display_score : null; });
     p.red_flags_count = res.red_flags.length;
-    p.red_flags = res.red_flags.map(function (a) { return a.title; });
+    p.red_flags = res.red_flags.map(function (a) { return a.subject || a.title; });
     p.critical_issues_count = res.critical.length;
     p.top_priorities = res.very_good ? [] : res.roadmap.filter(function (a) { return a.priority <= 3; }).slice(0, 3).map(function (a) { return a.title; });
-    p.areas_to_structure = res.areas_to_structure.map(function (a) { return a.title; });
+    p.areas_to_structure = res.areas_to_structure.map(function (a) { return a.subject || a.title; });
     p.strengths = res.strengths.map(function (s) { return s.label; });
     p.lead_interest = res.lead_interest.slice();
     cfg.R.utm_keys.forEach(function (k) { p[k] = utm[k] || ''; });
@@ -488,6 +568,7 @@
     evalCond: evalCond, obligationApplies: obligationApplies,
     isActive: isActive, isApplicable: isApplicable,
     questionsFor: questionsFor, pillarsFor: pillarsFor, answerOptions: answerOptions, resolveQuestion: resolveQuestion,
+    contextSteps: contextSteps, moduleFor: moduleFor, searchAgreements: searchAgreements, agreementContext: agreementContext,
     levelFor: levelFor, evaluate: evaluate, buildPayload: buildPayload,
     serializeProgress: serializeProgress, restoreProgress: restoreProgress, resolveUtm: resolveUtm,
     newMetrics: newMetrics, openSegment: openSegment, closeSegment: closeSegment, metricsSummary: metricsSummary

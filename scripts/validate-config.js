@@ -17,7 +17,30 @@
     'recommendation_by_answer', 'commercial_tags', 'short_label', 'area_text'];
   var LEAD_TAGS = R.lead_interest.rules.map(function (r) { return r.tag; });
   var PILLAR_IDS = Q.PILLARS.map(function (p) { return p.id; });
+  var MOD = (globalThis.ARH_CCN_MODULES || { modules: {} }).modules, CCN = globalThis.ARH_CCN_LIST || { entries: [], special: [] };
   var CTX = {}; Q.CONTEXT.forEach(function (c) { CTX[c.id] = c; });
+  /* Champs issus de la sélection de convention et des questions de contexte des modules. */
+  CTX.collective_agreement_idcc = { options: CCN.entries.map(function (e) { return { id: e.idcc }; }) };
+  CTX.collective_agreement_known = { options: [{ id: 'known' }].concat(CCN.special.map(function (x) { return { id: x.id }; })) };
+  Object.keys(MOD).forEach(function (idcc) { (MOD[idcc].context_questions || []).forEach(function (c) { CTX[c.id] = c; }); });
+  /* Questions des modules conventionnels : validées comme les autres (le moteur les fusionne). */
+  var ALLQ = Q.QUESTIONS.slice();
+  Object.keys(MOD).forEach(function (idcc) {
+    if (!CCN.entries.some(function (e) { return e.idcc === idcc; })) errors.push('Module ' + idcc + ' : IDCC absent de la liste des conventions');
+    (MOD[idcc].questions || []).forEach(function (q) {
+      ALLQ.push(q);
+      var hasIdcc = JSON.stringify(q.applicability || {}).indexOf('"field":"collective_agreement_idcc","in":["' + idcc + '"]') >= 0;
+      if (!hasIdcc) errors.push('Question ' + q.id + ' : l\'applicabilité doit porter la condition d\'IDCC ' + idcc);
+    });
+    if ((MOD[idcc].context_questions || []).length + (MOD[idcc].questions || []).length > 2)
+      errors.push('Module ' + idcc + ' : plus de 2 questions (philosophie V1 : 1 à 2 contrôles discriminants)');
+  });
+  var seenEntries = {};
+  CCN.entries.forEach(function (e) {
+    if (!/^\d{1,4}$/.test(e.idcc)) errors.push('Convention : IDCC invalide ' + e.idcc);
+    if (seenEntries[e.idcc]) errors.push('Convention : IDCC en double ' + e.idcc); seenEntries[e.idcc] = true;
+    if (!e.label) errors.push('Convention ' + e.idcc + ' : libellé manquant');
+  });
 
   /* ---------- conditions ---------- */
   function checkCond(c, where) {
@@ -69,7 +92,7 @@
 
   /* ---------- questions ---------- */
   var seen = {};
-  Q.QUESTIONS.forEach(function (q, i) {
+  ALLQ.forEach(function (q, i) {
     var w = 'Question ' + (q.id || '#' + i);
     REQUIRED_QUESTION_FIELDS.forEach(function (k) { if (!(k in q)) err(w + ' : champ manquant ' + k); });
     if (seen[q.id]) err(w + ' : identifiant en double'); seen[q.id] = true;
@@ -110,7 +133,7 @@
   });
 
   /* Aucune périodicité en dur dans le libellé des entretiens (brief §17). */
-  Q.QUESTIONS.filter(function (q) { return q.legal_rule && q.legal_rule.indexOf('LR_ENTRETIEN_PARCOURS') >= 0; }).forEach(function (q) {
+  ALLQ.filter(function (q) { return q.legal_rule && q.legal_rule.indexOf('LR_ENTRETIEN_PARCOURS') >= 0; }).forEach(function (q) {
     var txt = [q.question, q.help_text, q.area_text].concat(Object.keys(q.recommendation_by_answer).map(function (k) { return q.recommendation_by_answer[k]; })).join(' ');
     if (/\b(\d+|deux|trois|quatre|six|huit)\s+ans\b|tous les/i.test(txt)) err(q.id + ' : périodicité écrite en dur dans un texte affiché');
   });
@@ -119,8 +142,8 @@
   function visibleTexts() {
     var t = [];
     Q.PILLARS.forEach(function (p) { t.push(p.label, p.strength_text, p.weak_text); });
-    Q.QUESTIONS.forEach(function (q) {
-      t.push(q.question, q.help_text, q.short_label, q.area_text, q.na_label || '');
+    ALLQ.forEach(function (q) {
+      t.push(q.question, q.help_text, q.short_label, q.area_text, q.na_label || '', q.action_title || '');
       Object.keys(q.answers || {}).forEach(function (k) { t.push(q.answers[k]); });
       Object.keys(q.recommendation_by_answer).forEach(function (k) { t.push(q.recommendation_by_answer[k]); });
       (q.variants || []).forEach(function (v) {
@@ -149,12 +172,23 @@
     var row = { size: s };
     cses.forEach(function (c) {
       var ctx = { company_size: s, has_cse: c };
-      var asked = Q.QUESTIONS.filter(function (q) { return isActive(q) && evalCond(q.applicability, ctx); }).length;
-      var potential = Q.QUESTIONS.filter(function (q) { return evalCond(q.applicability, ctx); }).length;
+      var asked = ALLQ.filter(function (q) { return isActive(q) && evalCond(q.applicability, ctx); }).length;
+      var potential = ALLQ.filter(function (q) { return evalCond(q.applicability, ctx); }).length;
       row[c] = asked + (potential !== asked ? ' (' + potential + ')' : '');
       maxAsked = Math.max(maxAsked, potential);
     });
     matrix.push(row);
+  });
+  /* Modules conventionnels : pire cas (convention du module + toutes les questions de contexte à « oui »). */
+  Object.keys(MOD).forEach(function (idcc) {
+    sizes.forEach(function (sz) {
+      var ctx = { company_size: sz, has_cse: 'yes', collective_agreement_idcc: idcc, forfait_jours: 'yes' };
+      var asked = ALLQ.filter(function (q) { return isActive(q) && evalCond(q.applicability, ctx); }).length;
+      var potential = ALLQ.filter(function (q) { return evalCond(q.applicability, ctx); }).length;
+      if (sz === '50-249') out('Module ' + idcc + ' (50-249, CSE, forfait jours « oui ») : ' + asked + ' questions actives (' + potential + ' une fois toutes les règles validées) + ' + (MOD[idcc].context_questions || []).length + ' écran(s) de contexte');
+      if (asked > 36) err('Module ' + idcc + ' : ' + asked + ' questions actives (> 36)');
+      if (potential > 36 && sz === '50-249') warn('Module ' + idcc + ' : ' + potential + ' questions une fois Q24/C6 activées (> 36) — à surveiller');
+    });
   });
   if (maxAsked > 36) err('Un profil peut recevoir ' + maxAsked + ' questions (> 36)');
 
@@ -164,8 +198,9 @@
   });
 
   /* ---------- sortie ---------- */
-  var active = Q.QUESTIONS.filter(isActive).length;
-  out('Questions : ' + Q.QUESTIONS.length + ' définies, ' + active + ' actives, ' + (Q.QUESTIONS.length - active) + ' en attente de validation juridique');
+  var active = ALLQ.filter(isActive).length;
+  out('Questions : ' + ALLQ.length + ' définies (dont ' + (ALLQ.length - Q.QUESTIONS.length) + ' conventionnelles), ' + active + ' actives, ' + (ALLQ.length - active) + ' en attente de validation juridique');
+  out('Conventions dans le sélecteur : ' + CCN.entries.length + ' · modules conventionnels : ' + Object.keys(MOD).join(', '));
   out('Règles réglementaires : ' + RULE_IDS.length + ' (' + RULE_IDS.filter(function (id) { return L.RULES[id].status === 'verified'; }).length + ' vérifiées) · LEGAL_VALIDATION_REQUIRED : ' + L.LEGAL_VALIDATION_REQUIRED.length);
   out('Questions posées par profil — actives (potentiel une fois toutes les règles validées) :');
   out('  effectif   | ' + cses.join(' | '));

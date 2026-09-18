@@ -34,6 +34,10 @@ pondéré sur toutes les questions ; tags commerciaux = signaux internes multipl
 - Durée : objectif 6-7 min réelles ; qualité du diagnostic > promesse de durée. Promesse provisoire
   « Moins de 10 minutes » tant qu'aucun chronométrage réel n'existe. Proposition de condensation dans
   `proposals/` (non appliquée, décision après tests utilisateurs).
+- Conventions collectives : sélection normalisée par IDCC (`src/data/ccn-list.js`), jamais de règle sur un texte
+  tapé. Modules dans `src/config/ccn-modules.js` : 1 à 2 contrôles discriminants par convention. V1 : SEUL
+  l'IDCC 1486 (forfait jours) a un module ; aucune autre extension conventionnelle sans validation.
+- Production : `release.mode = 'production'` → règle active seulement si `legal_reviewed_at` renseigné.
 - Wording adaptatif (`variants`) plutôt que nouvelles questions quand le concept mesuré est le même.
 - Tags commerciaux jamais visibles. Parcours de conversion figé (brief §31).
 - Commits cohérents par étape. Décisions produit : Valentin.

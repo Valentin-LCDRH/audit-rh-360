@@ -50,7 +50,7 @@
     h2('1. Contexte');
     p(esc(label(cfg, 'company_size', ctx.company_size)) + ' · CSE : ' + esc(label(cfg, 'has_cse', ctx.has_cse)) +
       ' · Organisation RH : ' + esc(label(cfg, 'hr_organization', ctx.hr_organization)) +
-      (ctx.collective_agreement ? ' · Convention collective : ' + esc(ctx.collective_agreement) : '') +
+      (ctx.collective_agreement_label ? ' · Convention collective : ' + esc(ctx.collective_agreement_label) + (ctx.collective_agreement_idcc ? ' (IDCC ' + esc(ctx.collective_agreement_idcc) + ')' : '') : '') +
       ' · ' + res.questions_count + ' questions.');
 
     h2('2. Score global');
@@ -68,17 +68,17 @@
     h.push('</table>');
 
     h2('4. Sujets à sécuriser');
-    if (res.red_flags.length) res.red_flags.forEach(function (a) { item(a.title, a.description, a.recommendation, OR); });
+    if (res.red_flags.length) res.red_flags.forEach(function (a) { item(a.subject || a.title, a.description, a.recommendation, OR); });
     else p('Vos réponses ne font ressortir aucun sujet réglementaire à sécuriser en priorité.');
 
     h2('5. Priorités');
     var prio = res.critical;
-    if (prio.length) prio.forEach(function (a) { item(a.title + ' — ' + a.status, a.description, a.recommendation); });
+    if (prio.length) prio.forEach(function (a) { item((a.subject || a.title) + ' — ' + a.status, a.description, a.recommendation); });
     else p('Aucun point critique supplémentaire.');
 
     h2('6. Axes à structurer');
     var areas = res.areas_to_structure.filter(function (a) { return a.priority !== 2; });
-    if (areas.length) areas.forEach(function (a) { item(a.title, a.description, a.recommendation, '#9B78F4'); });
+    if (areas.length) areas.forEach(function (a) { item(a.subject || a.title, a.description, a.recommendation, '#9B78F4'); });
     else p(res.very_good ? 'Aucun axe à structurer : votre organisation apparaît bien structurée.' : 'Aucun axe supplémentaire.');
 
     h2('7. Points forts');

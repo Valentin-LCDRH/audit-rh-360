@@ -18,7 +18,7 @@
     if (!same) throw new Error((msg ? msg + ' : ' : '') + 'attendu ' + JSON.stringify(b) + ', obtenu ' + JSON.stringify(a));
   }
   function profile(id) { return P.PROFILES.filter(function (p) { return p.id === id; })[0]; }
-  function run(id, cfg) { var p = profile(id); cfg = cfg || CFG; return E.evaluate(p.context, P.answersFor(p, cfg), cfg); }
+  function run(id, cfg) { var p = profile(id); cfg = cfg || CFG; return E.evaluate(P.contextFor(p, cfg), P.answersFor(p, cfg), cfg); }
   function all(ctx, C, M, over, cfg) {
     cfg = cfg || CFG;
     var a = {}; cfg.Q.QUESTIONS.forEach(function (q) { a[q.id] = q.type === 'C' ? C : M; });
@@ -151,13 +151,13 @@
   });
 
   test('Retour arrière / modification d\'une réponse', function () {
-    var p = profile('tres_mature'), a = P.answersFor(p, CFG);
-    var before = E.evaluate(p.context, a);
+    var p = profile('tres_mature'), a = P.answersFor(p, CFG), pc = P.contextFor(p, CFG);
+    var before = E.evaluate(pc, a);
     a.Q25 = 'unknown';
-    var after = E.evaluate(p.context, a);
+    var after = E.evaluate(pc, a);
     eq(ids(after.red_flags), ['Q25']); ok(after.global.score < before.global.score);
     a.Q25 = 'yes';
-    eq(E.evaluate(p.context, a).global.score, before.global.score, 'retour à l\'état initial');
+    eq(E.evaluate(pc, a).global.score, before.global.score, 'retour à l\'état initial');
   });
 
   test('Questions conditionnelles selon l\'effectif et le CSE', function () {
@@ -296,6 +296,105 @@
     eq(E.closeSegment(m, t0 + 99999999, 300).questionnaire_ms, 310000, 'segment déjà fermé : aucun ajout');
     var p = E.buildPayload({ result: run('pme_intermediaire'), meta: { metrics: s2 } });
     eq(p.audit_metrics.questionnaire_duration_seconds, 310, 'mesures jointes au payload');
+  });
+
+  /* ================= Convention collective / module Syntec ================= */
+  var FJ_ON = E.withOverrides(CFG, { rules: { LR_SYNTEC_FORFAIT_JOURS: 'verified' } });   // règle supposée validée
+  function ccnCtx(choice, extra, cfg) {
+    var c = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'internal_team' };
+    var v = E.agreementContext(choice, cfg || CFG); Object.keys(v).forEach(function (k) { c[k] = v[k]; });
+    Object.keys(extra || {}).forEach(function (k) { c[k] = extra[k]; });
+    return c;
+  }
+  function hasQ(ctx, id, cfg) { return E.questionsFor(ctx, cfg || CFG).some(function (q) { return q.id === id; }); }
+  function ctxIds(ctx) { return E.contextSteps(ctx).map(function (f) { return f.id; }); }
+
+  test('CCN 1 — IDCC 1486 + forfait jours Oui : question de contrôle affichée (règle validée)', function () {
+    var ctx = ccnCtx('1486', { forfait_jours: 'yes' });
+    ok(ctxIds(ctx).indexOf('forfait_jours') === ctxIds(ctx).indexOf('collective_agreement') + 1, 'contexte forfait jours juste après la convention');
+    ok(hasQ(ctx, 'CCN1486_FJ', FJ_ON), 'question Syntec posée');
+    eq(E.questionsFor(ctx, FJ_ON).filter(function (q) { return q.id === 'CCN1486_FJ'; })[0].pillar, 'compliance');
+    eq(hasQ(ctx, 'CCN1486_FJ'), CFG.L.RULES.LR_SYNTEC_FORFAIT_JOURS.status === 'verified', 'config actuelle : affichée seulement si la règle est vérifiée');
+  });
+
+  test('CCN 2 — IDCC 1486 + forfait jours Non : pas de question de contrôle', function () {
+    ok(!hasQ(ccnCtx('1486', { forfait_jours: 'no' }), 'CCN1486_FJ', FJ_ON));
+  });
+
+  test('CCN 3 — IDCC 1486 + forfait jours « Je ne sais pas » : ni contrôle ni faux red flag', function () {
+    var ctx = ccnCtx('1486', { forfait_jours: 'unknown' });
+    ok(!hasQ(ctx, 'CCN1486_FJ', FJ_ON), 'contrôle non posé');
+    var r = E.evaluate(ctx, P.answersFor(profile('tres_mature'), FJ_ON), FJ_ON);
+    eq(r.red_flags.length, 0, 'aucun red flag issu de la contextualisation');
+  });
+
+  test('CCN 4 — Autre convention (Métallurgie 3248) : aucune question Syntec, IDCC enregistré', function () {
+    var ctx = ccnCtx('3248', { forfait_jours: 'yes' });
+    eq(ctx.collective_agreement_idcc, '3248'); eq(ctx.collective_agreement_known, 'known');
+    ok(ctxIds(ctx).indexOf('forfait_jours') < 0 && !hasQ(ctx, 'CCN1486_FJ', FJ_ON), 'aucune question Syntec');
+    eq(E.buildPayload({ result: E.evaluate(ctx, {}, FJ_ON), context: ctx }, FJ_ON).forfait_jours, '', 'forfait_jours vide hors module');
+  });
+
+  test('CCN 5 et 6 — « Je ne connais pas » / « Aucune convention » : audit standard, valeurs explicites', function () {
+    var u = ccnCtx('unknown'), n = ccnCtx('none'), std = E.questionsFor(ccnCtx('3248')).length;
+    eq([u.collective_agreement_known, u.collective_agreement_idcc], ['unknown', null]);
+    eq([n.collective_agreement_known, n.collective_agreement_idcc], ['none', null]);
+    ok(u.collective_agreement_label && n.collective_agreement_label && u.collective_agreement_label !== n.collective_agreement_label, 'libellés distincts');
+    eq(E.questionsFor(u).length, std); eq(E.questionsFor(n).length, std);
+    var p = E.buildPayload({ result: E.evaluate(u, {}), context: u });
+    eq(p.collective_agreement_known, 'unknown', '« Je ne sais pas » n\'est pas une absence de donnée');
+  });
+
+  test('CCN 7 — Recherche « Syntec », « CCN Syntec », « IDCC 1486 », « 1486 » → même convention normalisée', function () {
+    ['Syntec', 'CCN Syntec', 'IDCC 1486', '1486', 'syntec', 'bureaux d\'études techniques', 'ingenieurs conseils'].forEach(function (q) {
+      var r = E.searchAgreements(q, CFG);
+      ok(r.length && r[0].idcc === '1486', '« ' + q + ' » → ' + (r[0] ? r[0].idcc : 'aucun résultat'));
+    });
+    ok(E.searchAgreements('métallurgie', CFG).some(function (e) { return e.idcc === '3248'; }), 'Métallurgie trouvée');
+    eq(E.searchAgreements('zzz inexistant', CFG), []);
+    eq(E.agreementContext('Syntec', CFG), null, 'un texte libre ne peut pas être sélectionné');
+  });
+
+  test('CCN 8 — Contexte hors score, nombre de questions exact', function () {
+    var no = ccnCtx('1486', { forfait_jours: 'no' }), yes = ccnCtx('1486', { forfait_jours: 'yes' }), other = ccnCtx('3248');
+    eq(ctxIds(no).length, ctxIds(other).length + 1, 'Syntec : +1 écran de contexte');
+    eq(E.questionsFor(no, FJ_ON).length, E.questionsFor(other, FJ_ON).length, 'Syntec sans forfait : aucune question de plus');
+    eq(E.questionsFor(yes, FJ_ON).length, E.questionsFor(other, FJ_ON).length + 1, 'Syntec avec forfait : +1 question');
+    var a = P.answersFor(profile('tres_mature'), FJ_ON);
+    eq(E.evaluate(no, a, FJ_ON).global.score, E.evaluate(other, a, FJ_ON).global.score, 'la question de contexte ne change pas le score');
+    var r = E.evaluate(yes, a, FJ_ON);
+    eq(r.questions_count, E.questionsFor(yes, FJ_ON).length, 'total affiché = total applicable');
+    ok(r.items.some(function (it) { return it.question_id === 'CCN1486_FJ'; }), 'contrôle compté dans le score');
+  });
+
+  test('CCN 9 — Red flag forfait jours seulement si règle vérifiée, applicable et activée', function () {
+    var ctx = ccnCtx('1486', { forfait_jours: 'yes' });
+    var on = E.evaluate(ctx, { CCN1486_FJ: 'no' }, FJ_ON);
+    eq(on.red_flags.map(function (a) { return a.question_id; }), ['CCN1486_FJ'], 'red flag avec règle validée');
+    eq(on.roadmap[0].title, 'Vérifier le cadre de vos forfaits jours', 'action concrète dans la roadmap');
+    eq(on.red_flags[0].subject, 'Cadre des forfaits annuels en jours', 'constat distinct de l\'action');
+    eq(E.evaluate(ctx, { CCN1486_FJ: 'yes' }, FJ_ON).red_flags.length, 0, 'forfait jours en place : aucun red flag');
+    var pending = E.withOverrides(CFG, { rules: { LR_SYNTEC_FORFAIT_JOURS: 'legal_validation_required' } });
+    eq(E.evaluate(ctx, { CCN1486_FJ: 'no' }, pending).red_flags.length, 0, 'règle non validée : aucun red flag');
+    var prod = E.withOverrides(CFG, { rules: { LR_SYNTEC_FORFAIT_JOURS: 'verified' }, release: { mode: 'production', require_legal_review: true } });
+    eq(E.evaluate(ctx, { CCN1486_FJ: 'no' }, prod).red_flags.length, 0, 'production sans relecture juridique : aucun red flag');
+    var txt = JSON.stringify(on.roadmap).toLowerCase();
+    ok(txt.indexOf('syntec') < 0, 'la restitution ne met pas en avant « Syntec »');
+  });
+
+  test('Production : aucune règle réglementaire sans relecture juridique', function () {
+    var prod = E.withOverrides(CFG, { release: { mode: 'production', require_legal_review: true } });
+    ok(E.questionsFor(CTX50, prod).every(function (q) { return !q.legal_flag; }), 'questions réglementaires inactives sans legal_reviewed_at');
+    var reviewed = E.withOverrides(CFG, { release: { mode: 'production', require_legal_review: true } });
+    reviewed.L.RULES.LR_DUERP.legal_reviewed_at = '2026-10-01';
+    ok(E.questionsFor(CTX50, reviewed).some(function (q) { return q.id === 'Q25'; }), 'règle relue : question active');
+  });
+
+  test('Payload : convention collective normalisée et forfait jours', function () {
+    var ctx = ccnCtx('1486', { forfait_jours: 'yes' });
+    var p = E.buildPayload({ result: E.evaluate(ctx, {}, FJ_ON), context: ctx }, FJ_ON);
+    eq([p.collective_agreement_idcc, p.collective_agreement_short_name, p.collective_agreement_known, p.forfait_jours], ['1486', 'Syntec', 'known', 'yes']);
+    ok(p.collective_agreement_label.length > 20, 'libellé officiel');
   });
 
   test('Tags commerciaux : plusieurs possibles, drh_externalise exige l\'organisation RH', function () {

@@ -116,8 +116,12 @@
       { id: 'in_progress', label: 'En cours de mise en place' },
       { id: 'unknown', label: 'Non concerné / Je ne sais pas' }
     ] },
-    { id: 'collective_agreement', label: 'Convention collective', required: false, free_text: true,
-      placeholder: 'Ex. Syntec, Commerce de gros… (facultatif)' },
+    /* Sélection normalisée (liste ccn-list.js) : stocke collective_agreement_idcc / _label / _short_name /
+       _known. Les règles se déclenchent sur l'IDCC, jamais sur le texte tapé. Pas d'avance automatique. */
+    { id: 'collective_agreement', type: 'ccn_search', required: true,
+      label: 'Quelle convention collective appliquez-vous ?',
+      help_text: 'Cela nous permet d\'adapter certaines vérifications à votre situation.',
+      placeholder: 'Rechercher par nom ou numéro IDCC...' },
     { id: 'hr_organization', label: 'Qui porte les RH aujourd\'hui ?', required: true, options: [
       { id: 'internal_team', label: 'Une équipe RH structurée en interne' },
       { id: 'small_team', label: 'Une à deux personnes dédiées aux RH' },

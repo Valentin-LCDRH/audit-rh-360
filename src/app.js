@@ -112,22 +112,73 @@
     }).join('') + '</ul>';
   }
 
+  function ctxSteps() { return E.contextSteps(S.context, cfg()); }
+
   function renderContext() {
-    var fields = BASE.Q.CONTEXT, f = fields[S.ctxIndex], val = S.context[f.id];
-    var body = f.free_text
-      ? '<div style="margin-top:26px"><label class="arh-sr" for="arh-free">' + esc(f.label) + '</label>' +
-        '<input id="arh-free" class="arh-input" type="text" autocomplete="off" maxlength="120" placeholder="' + esc(f.placeholder || '') + '" value="' + esc(val || '') + '"></div>'
-      : optionsHtml(f.options, val);
+    var fields = ctxSteps(), f = fields[S.ctxIndex], val = S.context[f.id];
+    var isSearch = f.type === 'ccn_search';
+    var done = isSearch ? !!S.context.collective_agreement_known : !!val;
     return '<section class="arh-screen arh-card">' +
       '<div class="arh-top"><span class="arh-step-label">Votre contexte</span><span class="arh-count">' + (S.ctxIndex + 1) + ' / ' + fields.length + '</span></div>' +
       '<div class="arh-progress" aria-hidden="true"><span style="width:' + Math.round(S.ctxIndex / fields.length * 100) + '%"></span></div>' +
-      '<div class="arh-qhead"><h2 class="arh-h2">' + esc(f.label) + '</h2>' + (f.help_text ? tipBtn() : '') + '</div>' +
-      (f.help_text ? '<p class="arh-tip" id="arh-tip" hidden>' + esc(f.help_text) + '</p>' : '') +
-      body +
+      '<div class="arh-qhead"><h2 class="arh-h2">' + esc(f.label) + '</h2>' + (f.help_text && !isSearch ? tipBtn() : '') + '</div>' +
+      (isSearch ? '<p class="arh-muted" style="margin:6px 0 0">' + esc(f.help_text) + '</p>'
+        : (f.help_text ? '<p class="arh-tip" id="arh-tip" hidden>' + esc(f.help_text) + '</p>' : '')) +
+      (isSearch ? renderCcnSearch(f) : optionsHtml(f.options, val)) +
       '<div class="arh-nav"><button class="arh-btn arh-btn-ghost" data-act="back">← Précédent</button>' +
-      (f.free_text ? '<button class="arh-btn" data-act="ctx-next">' + (val ? 'Continuer' : 'Passer') + ' →</button>'
-        : '<button class="arh-btn arh-btn-secondary" data-act="ctx-next"' + (val ? '' : ' disabled') + '>Suivant →</button>') + '</div>' +
+      '<button class="arh-btn ' + (isSearch ? '' : 'arh-btn-secondary') + '" data-act="ctx-next"' + (done ? '' : ' disabled') + '>' + (isSearch ? 'Continuer' : 'Suivant') + ' →</button></div>' +
       '</section>';
+  }
+
+  /* Recherche de convention collective : sélection obligatoire dans la liste normalisée, ou l'une des
+   * deux alternatives explicites. Plusieurs actions sur l'écran : pas d'avance automatique. */
+  var ccnQuery = '', ccnActive = -1;
+  function ccnOptionLabel(e) { return (e.display || e.label) + ' — IDCC ' + e.idcc + (e.short_name ? ' (' + e.short_name + ')' : ''); }
+  function renderCcnSearch(f) {
+    var c = S.context, CCN = cfg().CCN, h = '<div class="arh-ccn">';
+    if (c.collective_agreement_known === 'known') {
+      var sel = CCN.entries.filter(function (x) { return x.idcc === c.collective_agreement_idcc; })[0];
+      h += '<div class="arh-ccn-selected"><div><span class="arh-small">Convention sélectionnée</span><strong>' + esc(sel && sel.display || c.collective_agreement_label) + '</strong>' +
+        '<span class="arh-small">IDCC ' + esc(c.collective_agreement_idcc) + (c.collective_agreement_short_name ? ' · ' + esc(c.collective_agreement_short_name) : '') + '</span></div>' +
+        '<button class="arh-link" data-act="ccn-clear">Modifier</button></div>';
+    } else {
+      h += '<label class="arh-sr" for="arh-ccn">' + esc(f.label) + '</label>' +
+        '<input id="arh-ccn" class="arh-input" type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="arh-ccn-list"' +
+        ' placeholder="' + esc(f.placeholder) + '" value="' + esc(ccnQuery) + '">' +
+        '<ul class="arh-ccn-list" id="arh-ccn-list" role="listbox" hidden></ul>';
+    }
+    h += '<div class="arh-ccn-alt">' + (CCN.special || []).map(function (sp) {
+      return '<button type="button" class="arh-option arh-option-muted" data-ccn-special="' + esc(sp.id) + '" aria-pressed="' + (c.collective_agreement_known === sp.id) + '">' +
+        '<span class="arh-radio" aria-hidden="true"></span><span>' + esc(sp.label) + '</span></button>';
+    }).join('') + '</div></div>';
+    return h;
+  }
+  function updateCcnResults() {
+    var inp = view.querySelector('#arh-ccn'), list = view.querySelector('#arh-ccn-list');
+    if (!inp || !list) return;
+    var res = E.searchAgreements(ccnQuery, cfg(), 8);
+    ccnActive = res.length ? 0 : -1;
+    list.innerHTML = res.length ? res.map(function (e, i) {
+      return '<li role="option" id="arh-ccn-opt-' + i + '" data-ccn-idcc="' + esc(e.idcc) + '" aria-selected="' + (i === ccnActive) + '">' + esc(ccnOptionLabel(e)) + '</li>';
+    }).join('') : (ccnQuery.trim().length >= 2 ? '<li class="arh-ccn-empty" aria-disabled="true">Aucune convention trouvée. Essayez le numéro IDCC, ou choisissez une option ci-dessous.</li>' : '');
+    list.hidden = !list.innerHTML;
+    inp.setAttribute('aria-expanded', String(!list.hidden));
+    if (ccnActive >= 0) inp.setAttribute('aria-activedescendant', 'arh-ccn-opt-0'); else inp.removeAttribute('aria-activedescendant');
+  }
+  function moveCcn(delta) {
+    var opts = view.querySelectorAll('#arh-ccn-list [data-ccn-idcc]');
+    if (!opts.length) return;
+    ccnActive = (ccnActive + delta + opts.length) % opts.length;
+    Array.prototype.forEach.call(opts, function (o, i) { o.setAttribute('aria-selected', String(i === ccnActive)); });
+    view.querySelector('#arh-ccn').setAttribute('aria-activedescendant', 'arh-ccn-opt-' + ccnActive);
+    opts[ccnActive].scrollIntoView({ block: 'nearest' });
+  }
+  function chooseCcn(choice) {
+    var v = E.agreementContext(choice, cfg());
+    if (!v) return;
+    Object.keys(v).forEach(function (k) { S.context[k] = v[k]; });
+    ccnQuery = ''; save(); render();
+    var next = view.querySelector('[data-act="ctx-next"]'); if (next) next.focus();
   }
   function tipBtn() { return '<button type="button" class="arh-tip-btn" data-act="tip" aria-expanded="false" aria-controls="arh-tip" aria-label="Plus d\'informations">?</button>'; }
 
@@ -191,7 +242,7 @@
     /* Bloc 2 — sujets à sécuriser */
     if (res.red_flags.length) {
       h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' + esc(plural(res.red_flags.length, T.red_flags_title)) + '</h3></div><ul class="arh-items">' +
-        res.red_flags.map(function (a) { return itemHtml({ title: a.title, tag: a.status, body: a.description }, 'secure'); }).join('') + '</ul></section>';
+        res.red_flags.map(function (a) { return itemHtml({ title: a.subject || a.title, tag: a.status, body: a.description }, 'secure'); }).join('') + '</ul></section>';
     }
 
     /* Bloc 3 — points forts (en tête si très bon résultat) */
@@ -204,7 +255,7 @@
     var maxA = R.thresholds.max_areas_to_structure;
     if (res.areas_to_structure.length) {
       h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' + esc(plural(Math.min(maxA, res.areas_to_structure.length), T.areas_title)) + '</h3></div><ul class="arh-items">' +
-        res.areas_to_structure.slice(0, maxA).map(function (a) { return itemHtml({ title: a.title, tag: a.status, body: a.description }); }).join('') + '</ul>' +
+        res.areas_to_structure.slice(0, maxA).map(function (a) { return itemHtml({ title: a.subject || a.title, tag: a.status, body: a.description }); }).join('') + '</ul>' +
         (res.areas_to_structure.length > maxA ? '<p class="arh-small" style="margin:12px 0 0">+ ' + (res.areas_to_structure.length - maxA) + ' autres dans votre rapport détaillé.</p>' : '') + '</section>';
     }
 
@@ -335,20 +386,23 @@
   /* Sélection marquée sur place (pas de re-rendu), puis passage automatique à l'écran suivant. */
   var advancing = false;
   function markPressed(val) {
-    Array.prototype.forEach.call(view.querySelectorAll('[data-opt]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-opt') === val)); });
+    Array.prototype.forEach.call(view.querySelectorAll('[data-opt]'), function (b) {
+      var on = b.getAttribute('data-opt') === val;
+      b.setAttribute('aria-pressed', String(on));
+      b.classList.toggle('arh-option-picked', on);   // retour visuel immédiat avant l'écran suivant
+    });
     var n = view.querySelector('[data-act="ctx-next"], [data-act="q-next"]'); if (n) n.disabled = false;
   }
   function answerContext(val) {
-    var f = BASE.Q.CONTEXT[S.ctxIndex];
+    var f = ctxSteps()[S.ctxIndex];
     S.context[f.id] = val;
     save(); markPressed(val);
-    setTimeout(ctxNext, 180);
+    setTimeout(ctxNext, R.ui.auto_advance_ms);
   }
   function ctxNext() {
-    var f = BASE.Q.CONTEXT[S.ctxIndex];
-    if (f.free_text) { var inp = view.querySelector('#arh-free'); if (inp) S.context[f.id] = inp.value.trim(); }
-    if (f.required && !S.context[f.id]) return;
-    if (S.ctxIndex < BASE.Q.CONTEXT.length - 1) return go('context', { ctxIndex: S.ctxIndex + 1 });
+    var steps = ctxSteps(), f = steps[S.ctxIndex];
+    if (f.type === 'ccn_search' ? !S.context.collective_agreement_known : (f.required && !S.context[f.id])) return;
+    if (S.ctxIndex < steps.length - 1) return go('context', { ctxIndex: S.ctxIndex + 1 });
     track('context_completed', { hr_organization: S.context.hr_organization, respondent_role: S.context.respondent_role }, true);
     go('question', { qIndex: 0 });
   }
@@ -358,7 +412,7 @@
     if (S.metrics && S.answers[q.id] && S.answers[q.id] !== val) S.metrics.answer_changes++;
     S.answers[q.id] = val;
     save(); markPressed(val);
-    setTimeout(qNext, 220);
+    setTimeout(qNext, R.ui.auto_advance_ms);
   }
   function qNext() {
     var qs = questions(), q = qs[S.qIndex];
@@ -375,7 +429,7 @@
 
   function back() {
     if (S.metrics && !S.metrics.results_at) S.metrics.back_count++;
-    if (S.step === 'question') return S.qIndex > 0 ? go('question', { qIndex: S.qIndex - 1 }) : go('context', { ctxIndex: BASE.Q.CONTEXT.length - 1 });
+    if (S.step === 'question') return S.qIndex > 0 ? go('question', { qIndex: S.qIndex - 1 }) : go('context', { ctxIndex: ctxSteps().length - 1 });
     if (S.step === 'context') return S.ctxIndex > 0 ? go('context', { ctxIndex: S.ctxIndex - 1 }) : go('intro');
   }
 
@@ -421,11 +475,13 @@
   }
 
   mount.addEventListener('click', function (e) {
+    var cc = e.target.closest('[data-ccn-idcc], [data-ccn-special]');
+    if (cc && mount.contains(cc)) return chooseCcn(cc.getAttribute('data-ccn-idcc') || cc.getAttribute('data-ccn-special'));
     var t = e.target.closest('[data-act], [data-opt]');
     if (!t || !mount.contains(t)) return;
     if (t.hasAttribute('data-opt')) {
       if (advancing) return;
-      advancing = true; setTimeout(function () { advancing = false; }, 260);
+      advancing = true; setTimeout(function () { advancing = false; }, R.ui.auto_advance_ms + 40);
       var v = t.getAttribute('data-opt');
       return S.step === 'context' ? answerContext(v) : answerQuestion(v);
     }
@@ -440,6 +496,10 @@
       go(S.step === 'intro' ? 'context' : S.step);
     } else if (act === 'back') back();
     else if (act === 'ctx-next') ctxNext();
+    else if (act === 'ccn-clear') {
+      ['collective_agreement_idcc', 'collective_agreement_label', 'collective_agreement_short_name', 'collective_agreement_known'].forEach(function (k) { delete S.context[k]; });
+      save(); render(); var inp = view.querySelector('#arh-ccn'); if (inp) inp.focus();
+    }
     else if (act === 'q-next') qNext();
     else if (act === 'tip') {
       var tip = view.querySelector('#arh-tip'), open = t.getAttribute('aria-expanded') === 'true';
@@ -456,13 +516,22 @@
     if (e.target.getAttribute('data-form') === 'lead') { e.preventDefault(); submitLead(e.target); }
   });
   mount.addEventListener('input', function (e) {
-    if (e.target.id === 'arh-free') { var b = view.querySelector('[data-act="ctx-next"]'); if (b) b.textContent = (e.target.value.trim() ? 'Continuer' : 'Passer') + ' →'; }
+    if (e.target.id === 'arh-ccn') { ccnQuery = e.target.value; updateCcnResults(); }
   });
   mount.addEventListener('keydown', function (e) {
-    if (e.target.id === 'arh-free' && e.key === 'Enter') { e.preventDefault(); ctxNext(); }
+    if (e.target.id === 'arh-ccn') {
+      if (e.key === 'ArrowDown') { e.preventDefault(); moveCcn(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); moveCcn(-1); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        var o = view.querySelectorAll('#arh-ccn-list [data-ccn-idcc]')[ccnActive];
+        if (o) chooseCcn(o.getAttribute('data-ccn-idcc'));
+      } else if (e.key === 'Escape') { var l = view.querySelector('#arh-ccn-list'); if (l) l.hidden = true; }
+    }
   });
   doc.addEventListener('keydown', function (e) {
     if ((S.step !== 'question' && S.step !== 'context') || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (S.step === 'context' && ctxSteps()[S.ctxIndex].type === 'ccn_search') return;   // écran multi-actions
     if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || ''))) return;
     var n = parseInt(e.key, 10);
     if (n >= 1 && n <= 9) { var b = view.querySelectorAll('[data-opt]')[n - 1]; if (b) { e.preventDefault(); b.click(); } }
@@ -521,7 +590,7 @@
     if (a === 'close') { devOpen = false; renderDev(); }
     else if (a === 'profile') {
       var p = root.ARH_PROFILES.PROFILES.filter(function (x) { return x.id === t.getAttribute('data-id'); })[0];
-      S = freshState(); S.context = JSON.parse(JSON.stringify(p.context)); S.answers = root.ARH_PROFILES.answersFor(p, cfg());
+      S = freshState(); S.context = root.ARH_PROFILES.contextFor(p, cfg()); S.answers = root.ARH_PROFILES.answersFor(p, cfg());
       S.started_at = S.completed_at = new Date().toISOString(); lastPayload = null; lastEmail = null; contactDraft = {}; formErrors = {};
       if (root.innerWidth < 900) devOpen = false;
       go('results');
