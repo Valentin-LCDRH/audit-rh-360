@@ -28,5 +28,11 @@ pondéré sur toutes les questions ; tags commerciaux = signaux internes multipl
 - Aucune règle réglementaire sans `legal_rule`, `applicability`, `source` officielle, `verified_at`.
   Règle incertaine → statut `legal_validation_required` → questions inactives.
 - Aucune périodicité en dur dans les libellés (entretiens de parcours professionnel).
+- Formulaire de rapport = envoi du rapport + échange éventuel sur CET audit (`consent_scope`). Aucune
+  inscription automatique à une liste newsletter / prospection ; l'opt-in marketing sera traité à part avant Brevo.
+- Durée : objectif 6-7 min réelles ; qualité du diagnostic > promesse de durée. Promesse provisoire
+  « Moins de 10 minutes » tant qu'aucun chronométrage réel n'existe. Proposition de condensation dans
+  `proposals/` (non appliquée, décision après tests utilisateurs).
+- Wording adaptatif (`variants`) plutôt que nouvelles questions quand le concept mesuré est le même.
 - Tags commerciaux jamais visibles. Parcours de conversion figé (brief §31).
 - Commits cohérents par étape. Décisions produit : Valentin.

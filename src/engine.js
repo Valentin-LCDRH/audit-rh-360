@@ -59,6 +59,18 @@
   }
   function isApplicable(q, ctx, cfg) { return isActive(q, cfg) && evalCond(q.applicability, ctx); }
 
+  /* Wording adaptatif : même question (id, poids, scoring), textes adaptés au contexte. */
+  var VARIANT_FIELDS = ['question', 'help_text', 'short_label', 'area_text', 'answers', 'recommendation_by_answer', 'allow_na', 'na_label'];
+  function resolveQuestion(q, ctx) {
+    var v = (q.variants || []).filter(function (x) { return evalCond(x.when, ctx); })[0];
+    if (!v) return q;
+    var r = {};
+    Object.keys(q).forEach(function (k) { r[k] = q[k]; });
+    VARIANT_FIELDS.forEach(function (k) { if (k in v) r[k] = v[k]; });
+    r.variant_id = v.id;
+    return r;
+  }
+
   function pillarOrder(cfg) { var o = {}; cfg.Q.PILLARS.forEach(function (p) { o[p.id] = p.order; }); return o; }
   function pillarById(cfg) { var o = {}; cfg.Q.PILLARS.forEach(function (p) { o[p.id] = p; }); return o; }
 
@@ -70,7 +82,7 @@
       .map(function (q, i) { return { q: q, i: i }; })
       .filter(function (x) { return isApplicable(x.q, ctx, cfg); })
       .sort(function (a, b) { return (po[a.q.pillar] - po[b.q.pillar]) || (a.i - b.i); })
-      .map(function (x) { return x.q; });
+      .map(function (x) { return resolveQuestion(x.q, ctx); });
   }
 
   /* Piliers réellement parcourus (au moins une question), avec leurs questions. */
@@ -86,7 +98,11 @@
    * Réponses et scores
    * ================================================================ */
   function answerOptions(q, cfg) {
-    if (q.type === 'M') return cfg.Q.ANSWER_SCALES.M.map(function (a) { return { id: a.id, label: q.answers[a.id], score: a.score }; });
+    if (q.type === 'M') {
+      var m = cfg.Q.ANSWER_SCALES.M.map(function (a) { return { id: a.id, label: q.answers[a.id], score: a.score }; });
+      if (q.allow_na) m.push({ id: 'na', label: q.na_label, score: null });   // exclu du score
+      return m;
+    }
     return cfg.Q.ANSWER_SCALES.C
       .filter(function (a) { return a.id !== 'na' || q.allow_na; })
       .map(function (a) { return { id: a.id, label: a.id === 'na' && q.na_label ? q.na_label : a.label, score: a.score, vigilance: !!a.vigilance }; });
@@ -142,7 +158,7 @@
         question_id: q.id, pillar: q.pillar, type: q.type, weight: q.weight,
         answer_id: opt.id, answer_label: opt.label, score: opt.score,
         in_score: opt.score !== null, vigilance: !!opt.vigilance,
-        short_label: q.short_label, q: q
+        short_label: q.short_label, variant_id: q.variant_id || null, q: q
       };
       it.red_flag = it.in_score && q.red_flag_conditions.some(function (rf) {
         return rf.answers.indexOf(opt.id) >= 0 && obligationApplies(rf.obligation, ctx, cfg);
@@ -385,6 +401,7 @@
     p.legal_rules_version = res.legal_rules_version;
     p.completed_at = meta.completed_at || '';
     p.page_url = meta.page_url || '';
+    p.consent_scope = cfg.R.lead_form.consent_scope || '';
     p.method_version = res.method_version;
     p.pillar_details = res.pillars.map(function (pl) {
       return { pillar: pl.id, score: pl.score, display_score: pl.display_score, evaluated: pl.evaluated, level: pl.level,
@@ -392,7 +409,7 @@
     });
     p.lead_signals = res.lead_signals;
     p.answers_json = JSON.stringify(res.items.map(function (it) {
-      return { question_id: it.question_id, pillar: it.pillar, answer_id: it.answer_id, score: it.score,
+      return { question_id: it.question_id, variant_id: it.variant_id, pillar: it.pillar, answer_id: it.answer_id, score: it.score,
         weight: it.weight, applicable: true, in_score: it.in_score, red_flag: it.red_flag };
     }));
     return p;
@@ -432,7 +449,7 @@
     defaultConfig: defaultConfig, withOverrides: withOverrides,
     evalCond: evalCond, obligationApplies: obligationApplies,
     isActive: isActive, isApplicable: isApplicable,
-    questionsFor: questionsFor, pillarsFor: pillarsFor, answerOptions: answerOptions,
+    questionsFor: questionsFor, pillarsFor: pillarsFor, answerOptions: answerOptions, resolveQuestion: resolveQuestion,
     levelFor: levelFor, evaluate: evaluate, buildPayload: buildPayload,
     serializeProgress: serializeProgress, restoreProgress: restoreProgress, resolveUtm: resolveUtm
   };

@@ -63,6 +63,11 @@
       w('| Source · vérifiée le | ' + (q.legal_rule ? q.legal_rule.map(function (id) { return L.RULES[id].source.map(function (s) { return '[' + s.label + '](' + s.url + ')'; }).join(' ; ') + ' · ' + L.RULES[id].verified_at; }).join(' ; ') : q.source + ' · ' + q.verified_at) + ' |');
       w('| Tags commerciaux (internes) | ' + q.commercial_tags.map(function (t) { return '`' + t + '`'; }).join(' ') + ' |');
       w('| Aide (tooltip) | ' + q.help_text + ' |');
+      (q.variants || []).forEach(function (v) {
+        w('| Wording adaptatif « ' + v.id + ' » (' + cond(v.when) + ') | **' + (v.question || q.question) + '**' +
+          (v.answers ? '<br>' + ['A', 'B', 'C', 'D'].map(function (k) { return k + '. ' + v.answers[k]; }).join('<br>') : '') +
+          (v.allow_na ? '<br>+ « ' + v.na_label + ' » (exclu du score)' : '') + ' |');
+      });
       w();
       if (q.type === 'M') {
         w('| Situation | Score | Recommandation |');

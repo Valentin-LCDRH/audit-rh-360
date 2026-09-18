@@ -85,6 +85,17 @@
     q.red_flag_conditions.forEach(function (rf) {
       if (!rf.obligation || (q.legal_rule || []).indexOf(rf.obligation) < 0) err(w + ' : red flag sans obligation rattachée à la question');
     });
+    (q.variants || []).forEach(function (v) {
+      var vw = w + ' (variante ' + v.id + ')';
+      if (!v.id || !v.when) err(vw + ' : id et when obligatoires');
+      checkCond(v.when, vw);
+      Object.keys(v).forEach(function (k) {
+        if (['id', 'when', 'question', 'help_text', 'short_label', 'area_text', 'answers', 'recommendation_by_answer', 'allow_na', 'na_label'].indexOf(k) < 0) err(vw + ' : champ non adaptable ' + k);
+      });
+      if (v.answers && q.type === 'M') ['A', 'B', 'C', 'D'].forEach(function (k) { if (!v.answers[k]) err(vw + ' : situation ' + k + ' manquante'); });
+      if (v.allow_na && !v.na_label) err(vw + ' : na_label requis');
+    });
+    if (q.type === 'M' && q.allow_na && !q.na_label) err(w + ' : na_label requis');
     var rec = q.recommendation_by_answer || {};
     if (q.type === 'M') {
       ['A', 'B', 'C', 'D'].forEach(function (k) { if (!q.answers || !q.answers[k]) err(w + ' : situation ' + k + ' manquante'); });
@@ -112,11 +123,16 @@
       t.push(q.question, q.help_text, q.short_label, q.area_text, q.na_label || '');
       Object.keys(q.answers || {}).forEach(function (k) { t.push(q.answers[k]); });
       Object.keys(q.recommendation_by_answer).forEach(function (k) { t.push(q.recommendation_by_answer[k]); });
+      (q.variants || []).forEach(function (v) {
+        ['question', 'help_text', 'short_label', 'area_text', 'na_label'].forEach(function (k) { if (v[k]) t.push(v[k]); });
+        Object.keys(v.answers || {}).forEach(function (k) { t.push(v.answers[k]); });
+        Object.keys(v.recommendation_by_answer || {}).forEach(function (k) { t.push(v.recommendation_by_answer[k]); });
+      });
     });
     (function walk(o) {
       if (typeof o === 'string') t.push(o);
       else if (o && typeof o === 'object') Object.keys(o).forEach(function (k) { walk(o[k]); });
-    })([R.result_texts, R.disclaimer, R.lead_form, R.commercial_cta, R.reason_templates]);
+    })([R.result_texts, R.disclaimer, R.lead_form, R.commercial_cta, R.reason_templates, R.hero]);
     return t;
   }
   visibleTexts().forEach(function (s) {

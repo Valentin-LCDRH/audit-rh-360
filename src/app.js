@@ -17,13 +17,7 @@
 
   var BASE = E.defaultConfig(), R = BASE.R;
   var DEV = mount.getAttribute('data-arh-dev') === 'true' || /[?&]test=1\b/.test(root.location.search);
-  var HERO = {
-    eyebrow: 'Audit RH 360°',
-    title: 'Faites le point sur votre organisation RH en quelques minutes',
-    lead: 'Évaluez vos pratiques RH, identifiez vos principales zones de risque et obtenez une roadmap personnalisée de vos priorités.',
-    cta: 'Démarrer mon audit RH',
-    meta: ['≈ 5 minutes', 'Résultat personnalisé', 'Aucune coordonnée demandée pour voir votre résultat']
-  };
+  var HERO = R.hero;
 
   /* ================================================================
    * État

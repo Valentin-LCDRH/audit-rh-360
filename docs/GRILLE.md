@@ -283,7 +283,7 @@ Score CRM : `employee_relations_score` · Point fort : « Votre dialogue social 
 
 ### C3 — Base de données économiques, sociales et environnementales (BDESE)
 
-**Votre BDESE est-elle en place, alimentée et accessible aux représentants du personnel ?**
+**Votre base de données économiques, sociales et environnementales (BDESE) est-elle en place, alimentée et accessible aux représentants du personnel ?**
 
 | Champ | Valeur |
 |---|---|
@@ -293,7 +293,7 @@ Score CRM : `employee_relations_score` · Point fort : « Votre dialogue social 
 | Legal flag · règle | Oui · `LR_BDESE` (verified) |
 | Source · vérifiée le | [Entreprendre.Service-Public — BDESE (F32193)](https://entreprendre.service-public.gouv.fr/vosdroits/F32193) · 2026-09-18 |
 | Tags commerciaux (internes) | `relations_sociales` `audit_rh` |
-| Aide (tooltip) | La BDESE rassemble les informations économiques et sociales mises à disposition du CSE. |
+| Aide (tooltip) | La BDESE rassemble les informations économiques, sociales et environnementales mises à disposition du CSE. |
 
 | Réponse | Score | Recommandation |
 |---|---|---|
@@ -341,6 +341,7 @@ Score CRM : `recruitment_score` · Point fort : « Vos recrutements et votre int
 | Source · vérifiée le | Brief Audit RH 360° Le Club des RH (sept. 2026) · 2026-09-18 |
 | Tags commerciaux (internes) | `recrutement` |
 | Aide (tooltip) | Étapes, rôles des intervenants et règles de décision, d'une équipe à l'autre. |
+| Wording adaptatif « small » (company_size ∈ {1-10}) | **Votre manière de recruter est-elle suffisamment structurée pour être reproduite d'un recrutement à l'autre ?**<br>A. Chaque recrutement se fait au cas par cas.<br>B. Quelques repères existent, mais ils changent d'un recrutement à l'autre.<br>C. Les étapes et les rôles sont définis et appliqués à chaque recrutement.<br>D. Le processus est défini, suivi et amélioré après chaque recrutement. |
 
 | Situation | Score | Recommandation |
 |---|---|---|
@@ -637,7 +638,7 @@ Score CRM : `management_qvct_score` · Point fort : « La prévention est pilot�
 
 ### Q25 — DUERP
 
-**Votre DUERP est-il à jour et adapté aux risques réellement rencontrés dans votre entreprise ?**
+**Votre document unique d'évaluation des risques professionnels (DUERP) est-il à jour et adapté aux risques réellement rencontrés dans votre entreprise ?**
 
 | Champ | Valeur |
 |---|---|
@@ -647,7 +648,7 @@ Score CRM : `management_qvct_score` · Point fort : « La prévention est pilot�
 | Legal flag · règle | Oui · `LR_DUERP` (verified) |
 | Source · vérifiée le | [Entreprendre.Service-Public — DUERP (F35360)](https://entreprendre.service-public.gouv.fr/vosdroits/F35360) ; [Légifrance — L4121-3-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043893919) · 2026-09-18 |
 | Tags commerciaux (internes) | `audit_rh` |
-| Aide (tooltip) | Le document unique d'évaluation des risques professionnels recense les risques de chaque unité de travail et les actions de prévention. |
+| Aide (tooltip) | Le DUERP recense les risques de chaque unité de travail et les actions de prévention associées. Il est obligatoire dès le premier salarié. |
 
 | Réponse | Score | Recommandation |
 |---|---|---|
@@ -690,6 +691,7 @@ Score CRM : `management_qvct_score` · Point fort : « La prévention est pilot�
 | Source · vérifiée le | Brief Audit RH 360° Le Club des RH (sept. 2026) · 2026-09-18 |
 | Tags commerciaux (internes) | `drh_externalise` `orkest` |
 | Aide (tooltip) | Capacité à repérer une dérive, en comprendre les causes et engager des actions. |
+| Wording adaptatif « small » (company_size ∈ {1-10}) | **Lorsque vous constatez une hausse des départs ou de l'absentéisme, disposez-vous des informations nécessaires pour en comprendre les causes et agir ?** |
 
 | Situation | Score | Recommandation |
 |---|---|---|
@@ -711,6 +713,7 @@ Score CRM : `management_qvct_score` · Point fort : « La prévention est pilot�
 | Source · vérifiée le | Brief Audit RH 360° Le Club des RH (sept. 2026) · 2026-09-18 |
 | Tags commerciaux (internes) | `drh_externalise` |
 | Aide (tooltip) | Absences, conflits, entretiens, demandes courantes des collaborateurs. |
+| Wording adaptatif « small » (company_size ∈ {1-10}) | **Les personnes qui encadrent des collaborateurs disposent-elles d'un cadre suffisamment clair pour gérer les situations RH courantes et savoir quand solliciter un appui RH ?**<br>A. Elles sollicitent très fréquemment un appui, y compris pour les situations courantes.<br>B. Leur niveau d'autonomie varie fortement.<br>C. Elles disposent d'un cadre clair et sont globalement autonomes.<br>D. Elles sont formées, outillées et savent quand solliciter un appui.<br>+ « Non applicable : personne n'encadre d'équipe en dehors de la direction » (exclu du score) |
 
 | Situation | Score | Recommandation |
 |---|---|---|
@@ -725,7 +728,7 @@ Score CRM : `hr_operations_data_score` · Point fort : « Votre fonction RH est 
 
 ### Q29 — Feuille de route RH
 
-**Votre roadmap RH est-elle formalisée, priorisée et reliée aux enjeux business de l'entreprise ?**
+**Votre roadmap RH est-elle formalisée, priorisée et reliée aux enjeux de l'entreprise ?**
 
 | Champ | Valeur |
 |---|---|
@@ -742,7 +745,7 @@ Score CRM : `hr_operations_data_score` · Point fort : « Votre fonction RH est 
 | A. Nous fonctionnons principalement en réaction aux sujets qui arrivent. | 0 | Définir avec la direction trois à cinq priorités RH pour les douze prochains mois. |
 | B. Des priorités existent mais sont peu formalisées ou régulièrement bousculées. | 33 | Formaliser la feuille de route RH et la partager avec la direction. |
 | C. Une roadmap claire et priorisée existe. | 67 | Associer à chaque priorité des objectifs mesurables et une revue régulière. |
-| D. La roadmap découle des enjeux business, comporte des objectifs mesurables et fait l'objet d'un suivi régulier. | 100 | — (point fort) |
+| D. La roadmap découle des enjeux de l'entreprise, comporte des objectifs mesurables et fait l'objet d'un suivi régulier. | 100 | — (point fort) |
 
 ### Q30 — Fiabilité des données RH
 
@@ -784,7 +787,7 @@ Score CRM : `hr_operations_data_score` · Point fort : « Votre fonction RH est 
 | A. De nombreux processus reposent encore sur Excel, emails ou ressaisies. | 0 | Identifier les tâches les plus chronophages et les processus à digitaliser en priorité. |
 | B. Plusieurs outils existent mais communiquent peu entre eux. | 33 | Connecter les outils existants pour supprimer les doubles saisies. |
 | C. Les principaux processus sont digitalisés avec peu de doubles saisies. | 67 | Automatiser les tâches répétitives restantes. |
-| D. La stack RH est intégrée et les principales tâches répétitives sont automatisées. | 100 | — (point fort) |
+| D. Les outils RH sont intégrés et les principales tâches répétitives sont automatisées. | 100 | — (point fort) |
 
 ### Q32 — Usage des indicateurs RH
 
@@ -798,12 +801,12 @@ Score CRM : `hr_operations_data_score` · Point fort : « Votre fonction RH est 
 | Legal flag · règle | Non |
 | Source · vérifiée le | Brief Audit RH 360° Le Club des RH (sept. 2026) · 2026-09-18 |
 | Tags commerciaux (internes) | `orkest` `drh_externalise` |
-| Aide (tooltip) | Au-delà du reporting : les indicateurs éclairent-ils les arbitrages ? |
+| Aide (tooltip) | Au-delà du suivi : les indicateurs éclairent-ils les arbitrages ? |
 
 | Situation | Score | Recommandation |
 |---|---|---|
 | A. Nous disposons de peu d'indicateurs fiables. | 0 | Définir un socle de cinq à huit indicateurs RH fiables. |
-| B. Des indicateurs sont produits mais principalement à des fins de reporting. | 33 | Relier chaque indicateur à une décision ou une action possible. |
+| B. Des indicateurs sont produits, mais servent surtout au suivi, peu aux décisions. | 33 | Relier chaque indicateur à une décision ou une action possible. |
 | C. Les principaux KPI sont utilisés dans le pilotage RH. | 67 | Présenter les indicateurs RH dans les arbitrages de direction et mesurer l'impact des actions. |
 | D. Les données RH alimentent régulièrement les arbitrages de la direction et permettent de mesurer l'impact des actions engagées. | 100 | — (point fort) |
 

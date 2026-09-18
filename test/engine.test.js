@@ -265,6 +265,22 @@
     });
   });
 
+  test('Wording adaptatif TPE : même question, même scoring, textes adaptés', function () {
+    function q(ctx, id) { return E.questionsFor(ctx).filter(function (x) { return x.id === id; })[0]; }
+    var big = { company_size: '50-249', has_cse: 'yes' };
+    ok(/reproduite/.test(q(CTX5, 'Q13').question) && /homogène/.test(q(big, 'Q13').question), 'Q13');
+    ok(/hausse des départs/.test(q(CTX5, 'Q27').question) && /dans une équipe/.test(q(big, 'Q27').question), 'Q27');
+    ok(/encadrent/.test(q(CTX5, 'Q28').question) && /managers/.test(q(big, 'Q28').question), 'Q28');
+    eq(q(CTX5, 'Q13').weight, q(big, 'Q13').weight, 'même poids');
+    ok(E.answerOptions(q(CTX5, 'Q28'), CFG).some(function (o) { return o.id === 'na'; }), 'Q28 : N/A pour une TPE');
+    ok(!E.answerOptions(q(big, 'Q28'), CFG).some(function (o) { return o.id === 'na'; }), 'Q28 : pas de N/A au-delà');
+    var withNa = E.evaluate(CTX5, { Q25: 'yes', Q26: 'D', Q27: 'D', Q28: 'na' });
+    eq(pillar(withNa, 'management_qvct').score, 100, 'Q28 N/A exclue du score');
+    eq(pillar(withNa, 'management_qvct').applicable_count, 4, 'toujours comptée comme posée');
+    eq(withNa.items.filter(function (it) { return it.question_id === 'Q28'; })[0].variant_id, 'small', 'variante tracée');
+    ok(/reproduire/.test(E.evaluate(CTX5, { Q13: 'A' }).roadmap[0].recommendation), 'recommandation de la variante');
+  });
+
   test('Tags commerciaux : plusieurs possibles, drh_externalise exige l\'organisation RH', function () {
     ok(run('pme_fragile').lead_interest.length >= 2);
     var ctx = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'internal_team' };

@@ -63,3 +63,18 @@ GA4/GTM (8 événements poussés dans `dataLayer`), destination du CTA commercia
 | 50+ avec CSE | 34 | 1 515 | ~10,7 min |
 Écart avec la promesse « ≈ 5 minutes » : à mesurer avec de vrais testeurs (chronomètre).
 Question la plus longue : Q5 (62 mots avec ses 4 situations).
+
+## Itération 3 (2026-09-18) — ajustements avant tests utilisateurs
+- Accueil : « Moins de 10 minutes » (provisoire, avant chronométrage). Textes de l'accueil déplacés en config (`hero`).
+- DUERP et BDESE explicités à leur première apparition ; « stack RH » → « outils RH » ; « reporting » → « suivi » ;
+  « enjeux business » → « enjeux de l'entreprise ». Conservés : onboarding, KPI, roadmap.
+- Wording adaptatif 1-10 salariés (même question, même poids, même score) : Q13 (recrutement reproductible),
+  Q27 (hausse des départs ou de l'absentéisme), Q28 (encadrants + « Non applicable » si personne n'encadre
+  en dehors de la direction, exclu du score). Variante tracée dans `answers_json` (`variant_id`). Test ajouté (29/29).
+- Payload : `consent_scope = audit_report_and_followup` (aucune inscription marketing automatique).
+- Proposition de condensation des 24 questions M : `docs/PROPOSITION-CONDENSATION.md` (−199 mots, −17 %), non appliquée.
+
+## Protocole de chronométrage suggéré (tests utilisateurs)
+Chronométrer de « Démarrer mon audit RH » à l'affichage du score ; noter les questions relues ou commentées
+et les hésitations sur les situations A/B/C/D. Viser 3 à 5 testeurs de profils différents (dirigeant de TPE,
+RRH de PME, DRH d'ETI), dont au moins un sur mobile.

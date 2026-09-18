@@ -17,6 +17,10 @@
  *   du parcours et du score sans toucher à l'interface ni au moteur (ex. désactiver l'Index égalité).
  * - `red_flag_conditions` : [{ answers, obligation }] — un red flag exige À LA FOIS une réponse
  *   déclenchante ET l'obligation `obligation` (legal-rules.js) vérifiée et applicable au contexte.
+ * - `variants` (facultatif) : wording adaptatif selon le contexte. [{ id, when, ...champs remplacés }].
+ *   Le concept mesuré, l'identifiant, le poids et le scoring restent les mêmes ; seuls les textes
+ *   (question, aide, situations, recommandations, libellé court) et `allow_na` peuvent changer.
+ *   La première variante dont `when` est vraie s'applique.
  * - `recommendation_by_answer` : texte d'action pour chaque réponse non maximale.
  * - `commercial_tags` : usage interne (qualification), JAMAIS affiché.
  */
@@ -126,6 +130,8 @@
   /* Raccourcis de conditions (grammaire décrite dans scoring.js) */
   var SIZE_11_PLUS = { field: 'company_size', in: ['11-49', '50-249', '250-999', '1000+'] };
   var SIZE_50_PLUS = { field: 'company_size', in: ['50-249', '250-999', '1000+'] };
+  /* « Petite structure » pour le wording adaptatif (même question, même score, formulation adaptée). */
+  var SMALL = { field: 'company_size', in: ['1-10'] };
   var HAS_INSTANCES = { any: [ { field: 'has_cse', in: ['yes', 'in_progress'] }, SIZE_50_PLUS ] };
 
   /* ------------------------------------------------------------------
@@ -375,8 +381,8 @@
 
     { id: 'C3', pillar: 'employee_relations', type: 'C', weight: 2, risk_level: 'modere',
       short_label: 'Base de données économiques, sociales et environnementales (BDESE)',
-      question: 'Votre BDESE est-elle en place, alimentée et accessible aux représentants du personnel ?',
-      help_text: 'La BDESE rassemble les informations économiques et sociales mises à disposition du CSE.',
+      question: 'Votre base de données économiques, sociales et environnementales (BDESE) est-elle en place, alimentée et accessible aux représentants du personnel ?',
+      help_text: 'La BDESE rassemble les informations économiques, sociales et environnementales mises à disposition du CSE.',
       allow_na: false,
       legal_flag: true, legal_rule: ['LR_BDESE'],
       red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_BDESE' }],
@@ -420,6 +426,21 @@
         C: 'Le process et les rôles sont clairement définis et globalement appliqués.',
         D: 'Le process est homogène, mesuré et régulièrement amélioré.'
       },
+      variants: [{ id: 'small', when: SMALL,
+        short_label: 'Structuration du recrutement',
+        question: 'Votre manière de recruter est-elle suffisamment structurée pour être reproduite d\'un recrutement à l\'autre ?',
+        help_text: 'Étapes, personnes impliquées et critères de décision, d\'un recrutement à l\'autre.',
+        answers: {
+          A: 'Chaque recrutement se fait au cas par cas.',
+          B: 'Quelques repères existent, mais ils changent d\'un recrutement à l\'autre.',
+          C: 'Les étapes et les rôles sont définis et appliqués à chaque recrutement.',
+          D: 'Le processus est défini, suivi et amélioré après chaque recrutement.'
+        },
+        recommendation_by_answer: {
+          A: 'Formaliser les étapes clés d\'un recrutement (besoin, sourcing, entretiens, décision) pour pouvoir les reproduire.',
+          B: 'Stabiliser ces repères dans une trame simple, utilisée à chaque recrutement.',
+          C: 'Faire un court bilan après chaque recrutement pour améliorer le processus.'
+        } }],
       legal_flag: false, legal_rule: null,
       red_flag_conditions: [], applicability: null,
       area_text: 'Des pratiques hétérogènes rendent les recrutements moins prévisibles.',
@@ -697,8 +718,8 @@
     /* ============ Pilier 7 — Management, QVCT & prévention ============ */
     { id: 'Q25', pillar: 'management_qvct', type: 'C', weight: 3, risk_level: 'eleve',
       short_label: 'DUERP',
-      question: 'Votre DUERP est-il à jour et adapté aux risques réellement rencontrés dans votre entreprise ?',
-      help_text: 'Le document unique d\'évaluation des risques professionnels recense les risques de chaque unité de travail et les actions de prévention.',
+      question: 'Votre document unique d\'évaluation des risques professionnels (DUERP) est-il à jour et adapté aux risques réellement rencontrés dans votre entreprise ?',
+      help_text: 'Le DUERP recense les risques de chaque unité de travail et les actions de prévention associées. Il est obligatoire dès le premier salarié.',
       allow_na: false,   // obligation applicable dès le premier salarié
       legal_flag: true, legal_rule: ['LR_DUERP'],
       red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_DUERP' }],
@@ -743,6 +764,14 @@
         C: 'Nous pouvons identifier les principales causes et mettre en place des actions.',
         D: 'Les indicateurs et signaux faibles sont régulièrement analysés et déclenchent des actions suivies.'
       },
+      variants: [{ id: 'small', when: SMALL,
+        question: 'Lorsque vous constatez une hausse des départs ou de l\'absentéisme, disposez-vous des informations nécessaires pour en comprendre les causes et agir ?',
+        help_text: 'Capacité à repérer une hausse des départs ou des absences, à en comprendre les causes et à agir.',
+        recommendation_by_answer: {
+          A: 'Suivre simplement les départs et les absences, mois par mois.',
+          B: 'Échanger avec les personnes concernées pour comprendre les causes lorsqu\'une hausse apparaît.',
+          C: 'Suivre les actions engagées et mesurer leurs effets.'
+        } }],
       legal_flag: false, legal_rule: null,
       red_flag_conditions: [], applicability: null,
       area_text: 'Repérer tôt une dérive d\'absentéisme ou de turnover permet d\'agir avant qu\'elle ne s\'installe.',
@@ -764,6 +793,24 @@
         C: 'Ils disposent d\'un cadre clair et sont globalement autonomes.',
         D: 'Ils sont formés, outillés et disposent de règles d\'escalade clairement définies.'
       },
+      /* Petite structure : wording « encadrants » ; si personne n'encadre en dehors de la direction,
+         la question est non applicable (exclue du score). */
+      variants: [{ id: 'small', when: SMALL,
+        short_label: 'Autonomie RH des encadrants',
+        question: 'Les personnes qui encadrent des collaborateurs disposent-elles d\'un cadre suffisamment clair pour gérer les situations RH courantes et savoir quand solliciter un appui RH ?',
+        help_text: 'Absences, tensions, entretiens, demandes courantes. Si personne n\'encadre d\'équipe en dehors de la direction, choisissez « Non applicable ».',
+        answers: {
+          A: 'Elles sollicitent très fréquemment un appui, y compris pour les situations courantes.',
+          B: 'Leur niveau d\'autonomie varie fortement.',
+          C: 'Elles disposent d\'un cadre clair et sont globalement autonomes.',
+          D: 'Elles sont formées, outillées et savent quand solliciter un appui.'
+        },
+        allow_na: true, na_label: 'Non applicable : personne n\'encadre d\'équipe en dehors de la direction',
+        recommendation_by_answer: {
+          A: 'Formaliser quelques repères simples sur les situations RH les plus fréquentes.',
+          B: 'Accompagner les encadrants et préciser quand solliciter un appui.',
+          C: 'Compléter ce cadre par une formation ciblée des encadrants.'
+        } }],
       legal_flag: false, legal_rule: null,
       red_flag_conditions: [], applicability: null,
       area_text: 'Des managers outillés traitent les situations courantes et savent quand alerter.',
@@ -778,13 +825,13 @@
     /* ============ Pilier 8 — Organisation, SIRH & pilotage RH ============ */
     { id: 'Q29', pillar: 'hr_operations_data', type: 'M', weight: 3, risk_level: 'eleve',
       short_label: 'Feuille de route RH',
-      question: 'Votre roadmap RH est-elle formalisée, priorisée et reliée aux enjeux business de l\'entreprise ?',
+      question: 'Votre roadmap RH est-elle formalisée, priorisée et reliée aux enjeux de l\'entreprise ?',
       help_text: 'Les priorités RH de l\'année et leur lien avec la stratégie de l\'entreprise.',
       answers: {
         A: 'Nous fonctionnons principalement en réaction aux sujets qui arrivent.',
         B: 'Des priorités existent mais sont peu formalisées ou régulièrement bousculées.',
         C: 'Une roadmap claire et priorisée existe.',
-        D: 'La roadmap découle des enjeux business, comporte des objectifs mesurables et fait l\'objet d\'un suivi régulier.'
+        D: 'La roadmap découle des enjeux de l\'entreprise, comporte des objectifs mesurables et fait l\'objet d\'un suivi régulier.'
       },
       legal_flag: false, legal_rule: null,
       red_flag_conditions: [], applicability: null,
@@ -826,7 +873,7 @@
         A: 'De nombreux processus reposent encore sur Excel, emails ou ressaisies.',
         B: 'Plusieurs outils existent mais communiquent peu entre eux.',
         C: 'Les principaux processus sont digitalisés avec peu de doubles saisies.',
-        D: 'La stack RH est intégrée et les principales tâches répétitives sont automatisées.'
+        D: 'Les outils RH sont intégrés et les principales tâches répétitives sont automatisées.'
       },
       legal_flag: false, legal_rule: null,
       red_flag_conditions: [], applicability: null,
@@ -842,10 +889,10 @@
     { id: 'Q32', pillar: 'hr_operations_data', type: 'M', weight: 2, risk_level: 'modere',
       short_label: 'Usage des indicateurs RH',
       question: 'Vos indicateurs RH influencent-ils réellement les décisions prises par la fonction RH et la direction ?',
-      help_text: 'Au-delà du reporting : les indicateurs éclairent-ils les arbitrages ?',
+      help_text: 'Au-delà du suivi : les indicateurs éclairent-ils les arbitrages ?',
       answers: {
         A: 'Nous disposons de peu d\'indicateurs fiables.',
-        B: 'Des indicateurs sont produits mais principalement à des fins de reporting.',
+        B: 'Des indicateurs sont produits, mais servent surtout au suivi, peu aux décisions.',
         C: 'Les principaux KPI sont utilisés dans le pilotage RH.',
         D: 'Les données RH alimentent régulièrement les arbitrages de la direction et permettent de mesurer l\'impact des actions engagées.'
       },

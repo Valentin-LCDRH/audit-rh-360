@@ -218,9 +218,18 @@
       roadmap: ['top_priorities', 'areas_to_structure', 'strengths'],
       commercial: ['lead_interest'],
       acquisition: ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'],
-      meta: ['audit_id', 'config_version', 'legal_rules_version', 'completed_at', 'page_url'],
+      meta: ['audit_id', 'config_version', 'legal_rules_version', 'completed_at', 'page_url', 'consent_scope'],
       detail: ['method_version', 'pillar_details', 'lead_signals'],   // pilier : score, statut, nb de questions applicables
       raw: 'answers_json'   // intégralité des réponses : [{ question_id, answer_id, score, applicable, red_flag }]
+    },
+
+    /* Accueil. Durée provisoire tant qu'aucune mesure réelle n'existe : mieux vaut sous-promettre. */
+    hero: {
+      eyebrow: 'Audit RH 360°',
+      title: 'Faites le point sur votre organisation RH en quelques minutes',
+      lead: 'Évaluez vos pratiques RH, identifiez vos principales zones de risque et obtenez une roadmap personnalisée de vos priorités.',
+      cta: 'Démarrer mon audit RH',
+      meta: ['Moins de 10 minutes', 'Résultat personnalisé', 'Aucune coordonnée demandée pour voir votre résultat']
     },
 
     /* Contact : téléphone volontairement absent en V1. */
@@ -243,6 +252,9 @@
         { id: 'company', label: 'Entreprise', required: true }
       ],
       cta: 'Recevoir mon rapport',
+      /* Finalité du formulaire : envoi du rapport + échange éventuel sur CET audit. Aucune inscription
+         automatique à une liste newsletter / prospection (opt-in marketing à traiter séparément). */
+      consent_scope: 'audit_report_and_followup',
       privacy_note: 'Vos informations servent uniquement à vous envoyer votre rapport et, si vous le souhaitez, à échanger avec vous sur vos résultats.',
       privacy_url: 'https://www.leclubdesrh.fr/politique-de-confidentialite'
     },

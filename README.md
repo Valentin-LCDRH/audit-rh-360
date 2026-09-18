@@ -29,7 +29,8 @@ désactive l'Index égalité et affiche le payload CRM, les signaux commerciaux 
 scripts/test.sh
 ```
 Contrôle d'intégrité de la config + 27 tests du moteur (JavaScriptCore, fourni avec macOS).
-`scripts/build-grille.sh` régénère `docs/GRILLE.md`.
+`scripts/build-grille.sh` régénère `docs/GRILLE.md` ; `scripts/build-condensation.sh` régénère
+`docs/PROPOSITION-CONDENSATION.md` (proposition non appliquée).
 
 ## Modifier sans toucher à l'interface
 - Activer Q24 : passer `LR_TRANSPARENCE_SALARIALE` à `status: 'verified'` avec source, applicabilité et red flags.
