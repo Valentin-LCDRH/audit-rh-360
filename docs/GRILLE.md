@@ -190,7 +190,7 @@ Score CRM : `payroll_admin_score` · Point fort : « Votre paie et votre adminis
 |---|---|---|
 | A. Très difficilement. | 0 | Documenter les processus critiques (paie, déclarations, entrées/sorties) et désigner un relais formé. |
 | B. Oui, mais avec des difficultés importantes. | 33 | Compléter la documentation des processus critiques et organiser un binôme ou un relais externe. |
-| C. Oui, grâce à des process et relais identifiés. | 67 | Tester périodiquement le relais sur un cycle de paie complet. |
+| C. Oui, grâce à des process et relais identifiés. | 67 | Tester périodiquement le relais identifié sur un cycle de paie complet. |
 | D. Oui, sans dégradation significative grâce à une organisation documentée et sécurisée. | 100 | — (point fort) |
 
 ## Pilier 3/8 — Relations sociales
@@ -278,7 +278,7 @@ Score CRM : `employee_relations_score` · Point fort : « Votre dialogue social 
 |---|---|---|
 | A. Non, les informations sont très dispersées. | 0 | Recenser les accords en vigueur, leurs dates d'échéance et les engagements associés. |
 | B. Partiellement. | 33 | Centraliser les accords et engagements dans un référentiel unique. |
-| C. Oui, les documents et échéances sont centralisés. | 67 | Ajouter un suivi des actions et échéances à ce référentiel. |
+| C. Oui, les documents et échéances sont centralisés. | 67 | Compléter la vue centralisée des accords par un suivi des actions et des échéances. |
 | D. Oui, avec un suivi des engagements, échéances et actions associées. | 100 | — (point fort) |
 
 ### C3 — Base de données économiques, sociales et environnementales (BDESE)
@@ -498,7 +498,7 @@ Score CRM : `development_score` · Point fort : « Le développement des compét
 |---|---|---|
 | A. Très faible. | 0 | Identifier avec la direction les compétences critiques pour les deux prochaines années. |
 | B. Quelques besoins ont été identifiés de manière informelle. | 33 | Formaliser les compétences critiques et les rattacher aux postes concernés. |
-| C. Les principales compétences critiques sont identifiées. | 67 | Utiliser la cartographie pour arbitrer recrutement, formation et mobilité. |
+| C. Les principales compétences critiques sont identifiées. | 67 | Utiliser la cartographie des compétences pour arbitrer recrutement, formation et mobilité. |
 | D. Elles sont cartographiées et alimentent les décisions de recrutement, formation et mobilité. | 100 | — (point fort) |
 
 ### Q20 — Lisibilité des parcours d'évolution
@@ -565,7 +565,7 @@ Score CRM : `compensation_score` · Point fort : « Vos décisions salariales re
 |---|---|---|
 | A. Nous n'avons pas réellement d'architecture structurée. | 0 | Construire une première architecture des emplois (familles, niveaux). |
 | B. Des classifications existent mais sont incomplètes ou obsolètes. | 33 | Mettre à jour les classifications et compléter les emplois manquants. |
-| C. Les principaux emplois et niveaux sont structurés. | 67 | Utiliser l'architecture dans les décisions salariales et de mobilité. |
+| C. Les principaux emplois et niveaux sont structurés. | 67 | Utiliser l'architecture des emplois dans les décisions salariales et de mobilité. |
 | D. L'architecture est maintenue à jour et utilisée pour les décisions RH et salariales. | 100 | — (point fort) |
 
 ### Q23 — Objectivation des écarts de rémunération

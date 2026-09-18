@@ -284,7 +284,7 @@
       recommendation_by_answer: {
         A: 'Documenter les processus critiques (paie, déclarations, entrées/sorties) et désigner un relais formé.',
         B: 'Compléter la documentation des processus critiques et organiser un binôme ou un relais externe.',
-        C: 'Tester périodiquement le relais sur un cycle de paie complet.'
+        C: 'Tester périodiquement le relais identifié sur un cycle de paie complet.'
       },
       commercial_tags: ['drh_externalise', 'orkest'],
       source: EDITORIAL_SOURCE, verified_at: EDITORIAL_DATE },
@@ -368,7 +368,7 @@
       recommendation_by_answer: {
         A: 'Recenser les accords en vigueur, leurs dates d\'échéance et les engagements associés.',
         B: 'Centraliser les accords et engagements dans un référentiel unique.',
-        C: 'Ajouter un suivi des actions et échéances à ce référentiel.'
+        C: 'Compléter la vue centralisée des accords par un suivi des actions et des échéances.'
       },
       commercial_tags: ['relations_sociales', 'orkest'],
       source: EDITORIAL_SOURCE, verified_at: EDITORIAL_DATE },
@@ -569,7 +569,7 @@
       recommendation_by_answer: {
         A: 'Identifier avec la direction les compétences critiques pour les deux prochaines années.',
         B: 'Formaliser les compétences critiques et les rattacher aux postes concernés.',
-        C: 'Utiliser la cartographie pour arbitrer recrutement, formation et mobilité.'
+        C: 'Utiliser la cartographie des compétences pour arbitrer recrutement, formation et mobilité.'
       },
       commercial_tags: ['drh_externalise'],
       source: EDITORIAL_SOURCE, verified_at: EDITORIAL_DATE },
@@ -633,7 +633,7 @@
       recommendation_by_answer: {
         A: 'Construire une première architecture des emplois (familles, niveaux).',
         B: 'Mettre à jour les classifications et compléter les emplois manquants.',
-        C: 'Utiliser l\'architecture dans les décisions salariales et de mobilité.'
+        C: 'Utiliser l\'architecture des emplois dans les décisions salariales et de mobilité.'
       },
       commercial_tags: ['compensation'],
       source: EDITORIAL_SOURCE, verified_at: EDITORIAL_DATE },

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>Tests — moteur Audit RH 360°</title>
+<style>body{font:14px/1.6 ui-monospace,Menlo,monospace;margin:24px;white-space:pre-wrap}</style></head>
+<body>
+<script src="../src/config/legal-rules.js"></script>
+<script src="../src/config/questions.js"></script>
+<script src="../src/config/scoring.js"></script>
+<script src="../src/engine.js"></script>
+<script src="../src/profiles.js"></script>
+<script>var lines = []; window.print = undefined; console.log = (function (log) { return function (s) { lines.push(s); log.apply(console, arguments); }; })(console.log);</script>
+<script src="engine.test.js"></script>
+<script>document.body.textContent = lines.join('\n');</script>
+</body>
+</html>

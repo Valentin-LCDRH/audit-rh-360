@@ -94,6 +94,7 @@
     ok(!r.very_good, 'pas de message « aucun sujet prioritaire »');
     ok(r.strengths.every(function (s) { return s.pillar !== 'management_qvct'; }), 'le pilier du red flag n\'est pas un point fort');
     eq(E.buildPayload({ result: r }).red_flags_count, 1);
+    ok(/à sécuriser en priorité/.test(r.global.text), 'le texte global mentionne le sujet à sécuriser');
   });
 
   test('Profil 7 — Réponses entièrement négatives', function () {

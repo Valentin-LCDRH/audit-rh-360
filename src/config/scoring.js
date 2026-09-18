@@ -77,7 +77,7 @@
     roadmap_priorities: [
       { priority: 1, id: 'red_flag',         label: 'Sujets à sécuriser en priorité',
         rule: 'Réponse déclenchant un red flag réglementaire.' },
-      { priority: 2, id: 'critical_weak',    label: 'Points critiques à traiter',
+      { priority: 2, id: 'critical_weak',    label: 'Points critiques à traiter', label_by_tone: { critical_structure: 'À structurer en priorité' },
         rule: 'Question de poids 3 avec Non, Je ne sais pas ou situation A, hors red flag (tonalité forte). Question de poids 3 en situation B : même priorité, tonalité « À structurer en priorité ». Jamais présenté comme un red flag.' },
       { priority: 3, id: 'low_pillar',       label: 'Piliers à structurer',
         rule: 'Pilier dont le score est < low_pillar_below : une action de pilier, alimentée par ses réponses les plus faibles non déjà listées.' },
@@ -114,6 +114,8 @@
         to_structure: 'Votre organisation RH repose sur des bases réelles, avec plusieurs sujets à structurer.',
         to_secure:    'Vos réponses font ressortir plusieurs priorités à sécuriser et à structurer.'
       },
+      /* Ajouté au texte global quand le niveau est bon mais qu'il existe des red flags : la moyenne ne masque jamais un sujet à sécuriser. */
+      red_flag_suffix: { levels: ['structured', 'consolidate'], one: 'Un sujet reste toutefois à sécuriser en priorité.', many: '{n} sujets restent toutefois à sécuriser en priorité.' },
       very_good: {
         title: 'Votre organisation RH apparaît bien structurée',
         body: 'Vos réponses ne font ressortir aucun sujet prioritaire majeur à ce stade.',

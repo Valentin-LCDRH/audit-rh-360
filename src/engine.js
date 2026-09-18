@@ -235,6 +235,9 @@
     });
 
     var redFlags = roadmap.filter(function (a) { return a.priority === 1; });
+    var RS = R.result_texts.red_flag_suffix;
+    if (redFlags.length && RS && RS.levels.indexOf(global.level) >= 0)
+      global.text += ' ' + (redFlags.length > 1 ? RS.many : RS.one).replace('{n}', redFlags.length);
     var critical = roadmap.filter(function (a) { return a.priority === 2; });
 
     /* ---- 4. Cas « très bon résultat » ---- */
