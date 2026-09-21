@@ -18,6 +18,11 @@ docs/GRILLE.md             grille métier générée depuis la config
 docs/QA-PHASE2.md          recette de la maquette
 ```
 
+## Dépôt
+Dépôt GitHub **privé** (règles de qualification commerciale, notes juridiques non relues). La distribution pour Webflow
+(jsDelivr exige un dépôt public) sera arbitrée avant l'intégration : code collé dans Webflow ou dépôt de distribution
+séparé ne contenant que les fichiers livrés. Passation designer : `docs/PASSATION-DESIGNER.md`.
+
 ## Tester la maquette
 ```bash
 python3 -m http.server 8766
