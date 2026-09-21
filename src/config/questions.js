@@ -108,12 +108,15 @@
         { id: '250-999', label: '250 à 999 salariés', min: 250, max: 999 },
         { id: '1000+', label: '1 000 salariés et plus', min: 1000, max: null }
       ] },
-    { id: 'has_cse', label: 'Disposez-vous d\'un CSE ?', required: true, options: [
-      { id: 'yes', label: 'Oui' },
-      { id: 'no', label: 'Non' },
-      { id: 'in_progress', label: 'En cours de mise en place' },
-      { id: 'unknown', label: 'Non concerné / Je ne sais pas' }
-    ] },
+    /* Posée uniquement à partir de 11 salariés. `applicability` sur un champ de contexte : écran masqué et
+       valeur ignorée si la condition n'est plus remplie (ex. effectif modifié après coup). */
+    { id: 'has_cse', label: 'Disposez-vous d\'un CSE ?', required: true,
+      applicability: { field: 'company_size', in: ['11-49', '50-249', '250-999', '1000+'] },
+      options: [
+        { id: 'yes', label: 'Oui' },
+        { id: 'no', label: 'Non' },
+        { id: 'in_progress', label: 'En cours de mise en place' }
+      ] },
     /* Sélection normalisée (liste ccn-list.js) : stocke collective_agreement_idcc / _label / _short_name /
        _known. Les règles se déclenchent sur l'IDCC, jamais sur le texte tapé. Pas d'avance automatique. */
     { id: 'collective_agreement', type: 'ccn_search', required: true,

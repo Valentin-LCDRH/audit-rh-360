@@ -13,7 +13,7 @@
 
 - **Votre fonction** (`respondent_role`) : CEO / Dirigeant `ceo` · DRH `drh` · DAF `daf` · Autre `other`
 - **Effectif de votre entreprise** (`company_size`) : 1 à 10 salariés `1-10` · 11 à 49 salariés `11-49` · 50 à 249 salariés `50-249` · 250 à 999 salariés `250-999` · 1 000 salariés et plus `1000+`
-- **Disposez-vous d'un CSE ?** (`has_cse`) : Oui `yes` · Non `no` · En cours de mise en place `in_progress` · Non concerné / Je ne sais pas `unknown`
+- **Disposez-vous d'un CSE ?** (`has_cse`) : Oui `yes` · Non `no` · En cours de mise en place `in_progress`
 - **Quelle convention collective appliquez-vous ?** (`collective_agreement`) : texte libre
 - **Qui porte les RH aujourd'hui ?** (`hr_organization`) : Une équipe RH structurée en interne `internal_team` · Une à deux personnes dédiées aux RH `small_team` · Principalement la direction (dirigeant, DAF…) `leadership` · Principalement un prestataire externe (expert-comptable, consultant…) `external` · Autre organisation `other`
 

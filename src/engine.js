@@ -101,6 +101,7 @@
   /* Questions posées, dans l'ordre du parcours (pilier, puis ordre de configuration). */
   function questionsFor(ctx, cfg) {
     cfg = cfg || defaultConfig();
+    ctx = normalizeContext(ctx, cfg);
     var po = pillarOrder(cfg);
     return cfg.Q.QUESTIONS
       .map(function (q, i) { return { q: q, i: i }; })
@@ -131,10 +132,21 @@
     cfg = cfg || defaultConfig();
     var steps = [], mod = moduleFor(ctx, cfg);
     cfg.Q.CONTEXT.forEach(function (f) {
+      if (!evalCond(f.applicability, ctx || {})) return;   // ex. CSE non demandé sous 11 salariés
       steps.push(f);
       if (f.type === 'ccn_search' && mod) (mod.context_questions || []).forEach(function (c) { steps.push(c); });
     });
     return steps;
+  }
+
+  /* Contexte effectif : les valeurs des champs de contexte non applicables sont ignorées (ex. « CSE : oui »
+   * saisi puis effectif ramené à 1-10). */
+  function normalizeContext(ctx, cfg) {
+    cfg = cfg || defaultConfig();
+    var c = {};
+    Object.keys(ctx || {}).forEach(function (k) { c[k] = ctx[k]; });
+    cfg.Q.CONTEXT.forEach(function (f) { if (f.applicability && !evalCond(f.applicability, c)) delete c[f.id]; });
+    return c;
   }
 
   /* Recherche de convention : « Syntec », « CCN Syntec », « IDCC 1486 », « 1486 », partie du nom.
@@ -219,6 +231,7 @@
    * ================================================================ */
   function evaluate(ctx, answers, cfg) {
     cfg = cfg || defaultConfig();
+    ctx = normalizeContext(ctx, cfg);
     answers = answers || {};
     var R = cfg.R, T = R.thresholds, D = R.scoring.display_rounding;
     var PB = pillarById(cfg), PO = pillarOrder(cfg);
@@ -481,7 +494,7 @@
    * ================================================================ */
   function buildPayload(o, cfg) {
     cfg = cfg || defaultConfig();
-    var res = o.result, ctx = o.context || res.context, contact = o.contact || {}, utm = o.utm || {}, meta = o.meta || {};
+    var res = o.result, ctx = normalizeContext(o.context || res.context, cfg), contact = o.contact || {}, utm = o.utm || {}, meta = o.meta || {};
     var p = {};
     cfg.R.payload.contact.forEach(function (k) { p[k] = contact[k] ? String(contact[k]).trim() : ''; });
     cfg.R.payload.context.forEach(function (k) { p[k] = ctx[k] || ''; });
@@ -590,7 +603,7 @@
     evalCond: evalCond, obligationApplies: obligationApplies,
     isActive: isActive, isApplicable: isApplicable,
     questionsFor: questionsFor, pillarsFor: pillarsFor, answerOptions: answerOptions, resolveQuestion: resolveQuestion,
-    contextSteps: contextSteps, moduleFor: moduleFor, searchAgreements: searchAgreements, agreementContext: agreementContext,
+    contextSteps: contextSteps, normalizeContext: normalizeContext, moduleFor: moduleFor, searchAgreements: searchAgreements, agreementContext: agreementContext,
     levelFor: levelFor, evaluate: evaluate, buildPayload: buildPayload,
     serializeProgress: serializeProgress, restoreProgress: restoreProgress, resolveUtm: resolveUtm,
     newMetrics: newMetrics, openSegment: openSegment, closeSegment: closeSegment, metricsSummary: metricsSummary

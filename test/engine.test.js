@@ -212,9 +212,9 @@
   });
 
   test('Red flag = réponse + obligation applicable (jamais la réponse seule)', function () {
-    var tpeCse = { company_size: '1-10', has_cse: 'yes' };
-    var r = E.evaluate(tpeCse, { Q9: 'no' });
-    ok(r.items.some(function (it) { return it.question_id === 'Q9'; }), 'Q9 posée (CSE déclaré)');
+    /* Sous 11 salariés, la question CSE n'est plus posée (décision du 21/09/2026) : ni Q9 ni red flag. */
+    var r = E.evaluate({ company_size: '1-10', has_cse: 'yes' }, { Q9: 'no' });
+    ok(r.items.every(function (it) { return it.question_id !== 'Q9'; }), 'Q9 non posée sous 11 salariés');
     eq(r.red_flags.length, 0, 'pas de red flag : obligation CSE non applicable sous 11');
     eq(E.evaluate({ company_size: '11-49', has_cse: 'yes' }, { Q9: 'no' }).red_flags.length, 1);
     var cfg = E.withOverrides(CFG, { rules: { LR_DUERP: 'legal_validation_required' } });
@@ -487,6 +487,15 @@
     var pre = E.withOverrides(CFG, { release: { mode: 'preprod', require_legal_review: true } });
     ok(E.questionsFor(CTX50, pre).some(function (q) { return q.id === 'Q25'; }), 'règle vérifiée active en pré-production');
     ok(E.questionsFor(CTX50, pre).every(function (q) { return q.id !== 'Q24' && q.id !== 'C6'; }), 'Q24 et C6 restent inactives');
+  });
+
+  test('CSE : non demandé sous 11 salariés, réponse ignorée si l\'effectif change', function () {
+    ok(ctxIds({ company_size: '1-10' }).indexOf('has_cse') < 0, 'écran CSE masqué pour 1-10');
+    ok(ctxIds({ company_size: '11-49' }).indexOf('has_cse') >= 0, 'écran CSE présent à partir de 11');
+    var stale = { company_size: '1-10', has_cse: 'yes', respondent_role: 'ceo', hr_organization: 'leadership' };
+    ok(E.questionsFor(stale).every(function (q) { return ['Q9', 'Q11', 'Q12'].indexOf(q.id) < 0; }), 'aucune question d\'instances');
+    eq(E.buildPayload({ result: E.evaluate(stale, {}), context: stale }).has_cse, '', 'valeur périmée non transmise');
+    ok(!CFG.Q.CONTEXT.filter(function (c) { return c.id === 'has_cse'; })[0].options.some(function (o) { return o.id === 'unknown'; }), 'option « Non concerné » retirée');
   });
 
   test('Payload : convention collective normalisée et forfait jours', function () {

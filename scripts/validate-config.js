@@ -169,6 +169,8 @@
     });
   });
 
+  Q.CONTEXT.forEach(function (c) { checkCond(c.applicability, 'Contexte ' + c.id); });
+
   /* ---------- volume par profil (brief §6 : ~36 questions max) ---------- */
   var sizes = CTX.company_size.options.map(function (o) { return o.id; });
   var cses = CTX.has_cse.options.map(function (o) { return o.id; });

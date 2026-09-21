@@ -33,7 +33,7 @@
       answers: { Q25: 'no', Q16: 'C', Q20: 'C', Q31: 'C' } },
 
     { id: 'tpe_sans_cse', label: 'TPE sans CSE (pilier « Relations sociales » non évalué)',
-      context: { respondent_role: 'ceo', company_size: '1-10', has_cse: 'unknown', hr_organization: 'external' }, ccn: 'none',
+      context: { respondent_role: 'ceo', company_size: '1-10', hr_organization: 'external' }, ccn: 'none',
       base: { C: 'yes', M: 'C' },
       answers: { Q1: 'partial', Q8: 'B', Q13: 'B', Q19: 'B', Q22: 'A', Q29: 'B', Q30: 'B', Q32: 'B' } },
 
