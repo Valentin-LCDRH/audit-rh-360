@@ -13,7 +13,7 @@
       answers: { Q1: 'partial', Q2: 'unknown', Q3: 'partial', Q5: 'B', Q7: 'B', Q13: 'B', Q15: 'B', Q18: 'B', Q21: 'B', Q26: 'B', Q28: 'B' } },
 
     { id: 'pme_intermediaire', label: 'PME intermédiaire',
-      context: { respondent_role: 'rrh', company_size: '50-249', has_cse: 'yes', hr_organization: 'small_team', forfait_jours: 'no' }, ccn: '1486',
+      context: { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'small_team', forfait_jours: 'no' }, ccn: '1486',
       base: { C: 'yes', M: 'C' },
       answers: { Q1: 'partial', Q3: 'partial', C3: 'partial', C4: 'na', Q10: 'B', Q12: 'B', Q16: 'A', Q19: 'B', Q20: 'B', Q22: 'B', Q23: 'B', Q27: 'B', Q29: 'B', Q31: 'B', Q32: 'B' } },
 
@@ -28,7 +28,7 @@
       answers: { Q16: 'C', Q20: 'C', Q31: 'C', Q12: 'C', Q19: 'C' } },
 
     { id: 'score_eleve_red_flag', label: 'Score élevé avec un red flag réglementaire',
-      context: { respondent_role: 'head_of_people', company_size: '250-999', has_cse: 'yes', hr_organization: 'internal_team' }, ccn: 'unknown',
+      context: { respondent_role: 'drh', company_size: '250-999', has_cse: 'yes', hr_organization: 'internal_team' }, ccn: 'unknown',
       base: { C: 'yes', M: 'D' },
       answers: { Q25: 'no', Q16: 'C', Q20: 'C', Q31: 'C' } },
 
@@ -38,7 +38,7 @@
       answers: { Q1: 'partial', Q8: 'B', Q13: 'B', Q19: 'B', Q22: 'A', Q29: 'B', Q30: 'B', Q32: 'B' } },
 
     { id: 'syntec_forfait_jours', label: 'ESN Syntec · forfaits jours à vérifier',
-      context: { respondent_role: 'head_of_people', company_size: '50-249', has_cse: 'yes', hr_organization: 'small_team', forfait_jours: 'yes' }, ccn: '1486',
+      context: { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'small_team', forfait_jours: 'yes' }, ccn: '1486',
       base: { C: 'yes', M: 'C' },
       answers: { CCN1486_FJ: 'partial', Q16: 'B', Q19: 'B', Q31: 'B' } },
 

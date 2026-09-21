@@ -94,11 +94,9 @@
    * ------------------------------------------------------------------ */
   var CONTEXT = [
     { id: 'respondent_role', label: 'Votre fonction', required: true, options: [
-      { id: 'ceo', label: 'Dirigeant / CEO' },
+      { id: 'ceo', label: 'CEO / Dirigeant' },
       { id: 'drh', label: 'DRH' },
-      { id: 'rrh', label: 'RRH' },
-      { id: 'head_of_people', label: 'Head of People / People Lead' },
-      { id: 'daf', label: 'Responsable administratif / financier' },
+      { id: 'daf', label: 'DAF' },
       { id: 'other', label: 'Autre' }
     ] },
     { id: 'company_size', label: 'Effectif de votre entreprise', required: true,
