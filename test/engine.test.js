@@ -489,6 +489,15 @@
     ok(E.questionsFor(CTX50, pre).every(function (q) { return q.id !== 'Q24' && q.id !== 'C6'; }), 'Q24 et C6 restent inactives');
   });
 
+  test('Élections CSE : seuil atteint depuis moins de 12 mois = Non applicable, sans red flag', function () {
+    var ctx = { company_size: '11-49', has_cse: 'no' };
+    ok(E.answerOptions(E.questionsFor(ctx).filter(function (q) { return q.id === 'Q9'; })[0], CFG).some(function (o) { return o.id === 'na'; }));
+    var r = E.evaluate(ctx, { Q9: 'na' });
+    eq(r.red_flags.length, 0);
+    ok(r.items.filter(function (it) { return it.question_id === 'Q9'; })[0].in_score === false, 'exclu du score');
+    eq(E.evaluate(ctx, { Q9: 'no' }).red_flags.length, 1, '« Non » reste un sujet à sécuriser');
+  });
+
   test('CSE : non demandé sous 11 salariés, réponse ignorée si l\'effectif change', function () {
     ok(ctxIds({ company_size: '1-10' }).indexOf('has_cse') < 0, 'écran CSE masqué pour 1-10');
     ok(ctxIds({ company_size: '11-49' }).indexOf('has_cse') >= 0, 'écran CSE présent à partir de 11');

@@ -272,7 +272,7 @@ Score CRM : `employee_relations_score` · Point fort : « Votre dialogue social 
 | Legal flag · règle | Oui · `LR_CSE` (verified) |
 | Source · vérifiée le | [Entreprendre.Service-Public — CSE : élections (F34474)](https://entreprendre.service-public.gouv.fr/vosdroits/F34474) ; [Légifrance — L2314-33 (version issue de la loi n° 2025-989)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000052437191) · 2026-09-18 |
 | Tags commerciaux (internes) | `relations_sociales` `audit_rh` |
-| Aide (tooltip) | Cela inclut le calendrier des mandats, le protocole préélectoral et, en l'absence de candidat, le procès-verbal correspondant. |
+| Aide (tooltip) | Cela inclut le calendrier des mandats, le protocole préélectoral et, en l'absence de candidat, le procès-verbal correspondant. L'obligation s'applique lorsque l'effectif d'au moins 11 salariés est atteint pendant 12 mois consécutifs. |
 
 | Réponse | Score | Recommandation |
 |---|---|---|
@@ -280,6 +280,7 @@ Score CRM : `employee_relations_score` · Point fort : « Votre dialogue social 
 | Partiellement / à vérifier | 50 | Établir le calendrier des mandats en cours et planifier les prochaines étapes électorales. |
 | Non / pas encore | 0 | Vérifier votre situation au regard des seuils applicables et organiser les élections ou formaliser le procès-verbal adapté. |
 | Je ne sais pas | 0 + vigilance | Vérifier la date de fin des mandats en cours, ou la date des dernières élections et du procès-verbal associé. |
+| Non applicable : 11 salariés atteints depuis moins de 12 mois consécutifs | exclu | — |
 
 ### Q10 — Calendrier social
 

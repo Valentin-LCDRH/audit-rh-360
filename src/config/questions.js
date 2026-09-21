@@ -111,6 +111,7 @@
     /* Posée uniquement à partir de 11 salariés. `applicability` sur un champ de contexte : écran masqué et
        valeur ignorée si la condition n'est plus remplie (ex. effectif modifié après coup). */
     { id: 'has_cse', label: 'Disposez-vous d\'un CSE ?', required: true,
+      help_text: 'Le CSE est obligatoire lorsque l\'entreprise atteint au moins 11 salariés pendant 12 mois consécutifs (effectif calculé selon les règles du Code du travail).',
       applicability: { field: 'company_size', in: ['11-49', '50-249', '250-999', '1000+'] },
       options: [
         { id: 'yes', label: 'Oui' },
@@ -304,8 +305,9 @@
     { id: 'Q9', conditional_id: 'C2', pillar: 'employee_relations', type: 'C', weight: 3, risk_level: 'eleve',
       short_label: 'Élections des représentants du personnel',
       question: 'Les élections et renouvellements de vos représentants du personnel sont-ils correctement anticipés et organisés ?',
-      help_text: 'Cela inclut le calendrier des mandats, le protocole préélectoral et, en l\'absence de candidat, le procès-verbal correspondant.',
-      allow_na: false,
+      help_text: 'Cela inclut le calendrier des mandats, le protocole préélectoral et, en l\'absence de candidat, le procès-verbal correspondant. L\'obligation s\'applique lorsque l\'effectif d\'au moins 11 salariés est atteint pendant 12 mois consécutifs.',
+      /* Seuil franchi depuis moins de 12 mois consécutifs : obligation pas encore applicable -> N/A (hors score, sans red flag). */
+      allow_na: true, na_label: 'Non applicable : 11 salariés atteints depuis moins de 12 mois consécutifs',
       legal_flag: true, legal_rule: ['LR_CSE'],
       red_flag_conditions: [{ answers: ['no', 'unknown'], obligation: 'LR_CSE' }],
       applicability: { any: [ SIZE_11_PLUS, { field: 'has_cse', in: ['yes', 'in_progress'] } ] },
