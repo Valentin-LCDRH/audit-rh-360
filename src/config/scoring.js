@@ -250,7 +250,7 @@
       title: 'Faites le point sur votre organisation RH en quelques minutes',
       lead: 'Évaluez vos pratiques RH, identifiez vos principales zones de risque et obtenez une roadmap personnalisée de vos priorités.',
       cta: 'Démarrer mon audit RH',
-      meta: ['Moins de 10 minutes', 'Résultat personnalisé', 'Aucune coordonnée demandée pour voir votre résultat']
+      meta: ['Moins de 10 minutes', 'Résultat personnalisé']
     },
 
     /* Contact : téléphone volontairement absent en V1. */
