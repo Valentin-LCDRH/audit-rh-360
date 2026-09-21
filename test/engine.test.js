@@ -27,7 +27,7 @@
   }
   function ids(list) { return list.map(function (x) { return x.question_id || x.pillar; }); }
   function pillar(res, id) { return res.pillars.filter(function (p) { return p.id === id; })[0]; }
-  var CTX50 = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', collective_agreement: '', hr_organization: 'internal_team' };
+  var CTX50 = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', collective_agreement: '', hr_organization: 'hr_team' };
   var CTX5 = { respondent_role: 'ceo', company_size: '1-10', has_cse: 'no', collective_agreement: '', hr_organization: 'leadership' };
 
   /* ================= Profils ================= */
@@ -301,7 +301,7 @@
   /* ================= Convention collective / module Syntec ================= */
   var FJ_ON = E.withOverrides(CFG, { rules: { LR_SYNTEC_FORFAIT_JOURS: 'verified' } });   // règle supposée validée
   function ccnCtx(choice, extra, cfg) {
-    var c = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'internal_team' };
+    var c = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'hr_team' };
     var v = E.agreementContext(choice, cfg || CFG); Object.keys(v).forEach(function (k) { c[k] = v[k]; });
     Object.keys(extra || {}).forEach(function (k) { c[k] = extra[k]; });
     return c;
@@ -507,6 +507,15 @@
     ok(!CFG.Q.CONTEXT.filter(function (c) { return c.id === 'has_cse'; })[0].options.some(function (o) { return o.id === 'unknown'; }), 'option « Non concerné » retirée');
   });
 
+  test('Organisation RH « Autre » : précision stockée, jamais utilisée comme règle', function () {
+    var ctx = { respondent_role: 'ceo', company_size: '11-49', has_cse: 'no', hr_organization: 'other', hr_organization_other: 'Office manager' };
+    var p = E.buildPayload({ result: E.evaluate(ctx, {}), context: ctx });
+    eq([p.hr_organization, p.hr_organization_other], ['other', 'Office manager']);
+    var stale = { company_size: '11-49', hr_organization: 'finance', hr_organization_other: 'Office manager' };
+    eq(E.buildPayload({ result: E.evaluate(stale, {}), context: stale }).hr_organization_other, '', 'précision ignorée si « Autre » n\'est plus choisi');
+    eq(CFG.Q.CONTEXT.filter(function (c) { return c.id === 'hr_organization'; })[0].options.map(function (o) { return o.id; }), ['hr_team', 'finance', 'leadership', 'external', 'other']);
+  });
+
   test('Payload : convention collective normalisée et forfait jours', function () {
     var ctx = ccnCtx('1486', { forfait_jours: 'yes' });
     var p = E.buildPayload({ result: E.evaluate(ctx, {}, FJ_ON), context: ctx }, FJ_ON);
@@ -516,7 +525,7 @@
 
   test('Tags commerciaux : plusieurs possibles, drh_externalise exige l\'organisation RH', function () {
     ok(run('pme_fragile').lead_interest.length >= 2);
-    var ctx = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'internal_team' };
+    var ctx = { respondent_role: 'drh', company_size: '50-249', has_cse: 'yes', hr_organization: 'hr_team' };
     var weak = all(ctx, 'no', 'A', { Q8: 'D' });
     ok(weak.lead_interest.indexOf('drh_externalise') < 0, 'équipe RH interne, pas de dépendance : pas de drh_externalise');
     var dep = all(ctx, 'no', 'A');

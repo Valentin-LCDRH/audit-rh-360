@@ -146,6 +146,10 @@
     var c = {};
     Object.keys(ctx || {}).forEach(function (k) { c[k] = ctx[k]; });
     cfg.Q.CONTEXT.forEach(function (f) { if (f.applicability && !evalCond(f.applicability, c)) delete c[f.id]; });
+    /* Précision liée à une option (« Autre → préciser ») : conservée seulement si l'option est choisie. */
+    cfg.Q.CONTEXT.forEach(function (f) {
+      (f.options || []).forEach(function (o) { if (o.detail && c[f.id] !== o.id) delete c[o.detail.id]; });
+    });
     return c;
   }
 

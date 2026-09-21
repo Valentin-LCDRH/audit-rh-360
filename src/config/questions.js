@@ -124,12 +124,15 @@
       label: 'Quelle convention collective appliquez-vous ?',
       help_text: 'Cela nous permet d\'adapter certaines vérifications à votre situation.',
       placeholder: 'Rechercher par nom ou numéro IDCC...' },
+    /* `detail` : une option peut ouvrir un champ texte (« Autre → préciser »). Le texte est seulement
+       stocké (hr_organization_other) ; il ne déclenche jamais de règle. Pas d'avance automatique dans ce cas. */
     { id: 'hr_organization', label: 'Qui porte les RH aujourd\'hui ?', required: true, options: [
-      { id: 'internal_team', label: 'Une équipe RH structurée en interne' },
-      { id: 'small_team', label: 'Une à deux personnes dédiées aux RH' },
-      { id: 'leadership', label: 'Principalement la direction (dirigeant, DAF…)' },
-      { id: 'external', label: 'Principalement un prestataire externe (expert-comptable, consultant…)' },
-      { id: 'other', label: 'Autre organisation' }
+      { id: 'hr_team', label: 'Équipe RH dédiée' },
+      { id: 'finance', label: 'Direction financière' },
+      { id: 'leadership', label: 'Direction' },
+      { id: 'external', label: 'Prestataire externe' },
+      { id: 'other', label: 'Autre',
+        detail: { id: 'hr_organization_other', label: 'Précisez', placeholder: 'Précisez en quelques mots', required: true, maxlength: 120 } }
     ] }
   ];
 

@@ -15,7 +15,7 @@
 - **Effectif de votre entreprise** (`company_size`) : 1 à 10 salariés `1-10` · 11 à 49 salariés `11-49` · 50 à 249 salariés `50-249` · 250 à 999 salariés `250-999` · 1 000 salariés et plus `1000+`
 - **Disposez-vous d'un CSE ?** (`has_cse`) : Oui `yes` · Non `no` · En cours de mise en place `in_progress`
 - **Quelle convention collective appliquez-vous ?** (`collective_agreement`) : texte libre
-- **Qui porte les RH aujourd'hui ?** (`hr_organization`) : Une équipe RH structurée en interne `internal_team` · Une à deux personnes dédiées aux RH `small_team` · Principalement la direction (dirigeant, DAF…) `leadership` · Principalement un prestataire externe (expert-comptable, consultant…) `external` · Autre organisation `other`
+- **Qui porte les RH aujourd'hui ?** (`hr_organization`) : Équipe RH dédiée `hr_team` · Direction financière `finance` · Direction `leadership` · Prestataire externe `external` · Autre `other`
 
 ## Pilier 1/8 — Conformité & fondamentaux RH
 
@@ -901,7 +901,7 @@ Tri interne : weight_desc → score_asc → pillar_order_asc → question_order_
 ## Qualification commerciale (interne, jamais affichée)
 
 - `audit_rh` — Plusieurs sujets réglementaires ou fondamentaux à sécuriser, ou sujets critiques dispersés. Règle : `{"any":[{"metric":"red_flags_count","gte":2},{"metric":"pillar_weak_answers","pillar":"compliance","gte":2},{"metric":"pillar_score","pillar":"compliance","lt":50},{"metric":"pillars_with_critical","gte":3}]}`
-- `drh_externalise` — Faible maturité transverse ET fonction RH peu structurée, portée par la direction, sous-dimensionnée ou dépendante d'une personne. Règle : `{"all":[{"metric":"weak_pillars_count","gte":3},{"any":[{"field":"hr_organization","in":["leadership","external","small_team","other"]},{"field":"respondent_role","in":["ceo","daf"]},{"metric":"answer_score","question":"Q8","lte":33}]}]}`
+- `drh_externalise` — Faible maturité transverse ET RH portées par la direction, la direction financière, un prestataire ou autre, ou dépendantes d'une personne. Règle : `{"all":[{"metric":"weak_pillars_count","gte":3},{"any":[{"field":"hr_organization","in":["leadership","finance","external","other"]},{"field":"respondent_role","in":["ceo","daf"]},{"metric":"answer_score","question":"Q8","lte":33}]}]}`
 - `orkest` — Organisation globalement mature, fragilités de process, documentation, données, outils ou pilotage. Règle : `{"all":[{"metric":"global_score","gte":60},{"metric":"tagged_weak_count","tag":"orkest","gte":2}]}`
 - `recrutement` — Recrutement & onboarding ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine). Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"recruitment","lt":60},{"metric":"rank_from_bottom","pillar":"recruitment","lte":2}]},{"metric":"pillar_signal_count","pillar":"recruitment","gte":1},{"metric":"pillar_weak_answers","pillar":"recruitment","gte":2}]}`
 - `compensation` — Rémunération & équité ressort (pilier faible et parmi les 2 plus faibles, ou signal critique du domaine), ou classification ET minima Métallurgie faibles. Règle : `{"any":[{"all":[{"metric":"pillar_score","pillar":"compensation","lt":60},{"metric":"rank_from_bottom","pillar":"compensation","lte":2}]},{"metric":"pillar_signal_count","pillar":"compensation","gte":1},{"all":[{"metric":"answer_score","question":"CCN3248_CLASSIF","lte":50},{"metric":"answer_score","question":"CCN3248_MINIMA","lte":50}]}]}`

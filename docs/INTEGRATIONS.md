@@ -36,7 +36,7 @@ Dans GTM (action manuelle) :
   - `payload_json` : le payload complet ; `answers_json` : toutes les réponses ;
   - `report_subject` + `report_html` : l'email du rapport, prêt pour Brevo.
 - Champs principaux : `firstname`, `lastname`, `email`, `company` · `respondent_role`, `company_size`, `has_cse`,
-  `hr_organization`, `collective_agreement_idcc`, `collective_agreement_label`, `collective_agreement_short_name`,
+  `hr_organization`, `hr_organization_other`, `collective_agreement_idcc`, `collective_agreement_label`, `collective_agreement_short_name`,
   `collective_agreement_known`, `forfait_jours` · `global_score` + 8 scores de pilier · `red_flags_count`,
   `red_flags`, `critical_issues_count` · `top_priorities`, `areas_to_structure`, `strengths` · `lead_interest`,
   `lead_signals` · `utm_*` · `audit_id`, `completed_at`, `page_url`, `config_version`, `legal_rules_version`,

@@ -181,10 +181,10 @@
             { metric: 'pillar_score', pillar: 'compliance', lt: 50 },
             { metric: 'pillars_with_critical', gte: 3 } ] } },
         { tag: 'drh_externalise',
-          description: 'Faible maturité transverse ET fonction RH peu structurée, portée par la direction, sous-dimensionnée ou dépendante d\'une personne.',
+          description: 'Faible maturité transverse ET RH portées par la direction, la direction financière, un prestataire ou autre, ou dépendantes d\'une personne.',
           when: { all: [
             { metric: 'weak_pillars_count', gte: 3 },
-            { any: [ { field: 'hr_organization', in: ['leadership', 'external', 'small_team', 'other'] },
+            { any: [ { field: 'hr_organization', in: ['leadership', 'finance', 'external', 'other'] },
                      { field: 'respondent_role', in: ['ceo', 'daf'] },
                      { metric: 'answer_score', question: 'Q8', lte: 33 } ] } ] } },
         { tag: 'orkest',
@@ -224,7 +224,7 @@
      * ------------------------------------------------------------------ */
     payload: {
       contact: ['firstname', 'lastname', 'email', 'company'],
-      context: ['respondent_role', 'company_size', 'has_cse', 'hr_organization',
+      context: ['respondent_role', 'company_size', 'has_cse', 'hr_organization', 'hr_organization_other',
                 'collective_agreement_idcc', 'collective_agreement_label', 'collective_agreement_short_name', 'collective_agreement_known'],
       ccn: ['forfait_jours'],
       scores: ['global_score', 'compliance_score', 'payroll_admin_score', 'employee_relations_score',

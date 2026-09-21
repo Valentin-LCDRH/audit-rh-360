@@ -50,7 +50,7 @@
 
     h2('1. Contexte');
     p(esc(label(cfg, 'company_size', ctx.company_size)) + ' · CSE : ' + esc(label(cfg, 'has_cse', ctx.has_cse)) +
-      ' · Organisation RH : ' + esc(label(cfg, 'hr_organization', ctx.hr_organization)) +
+      ' · Organisation RH : ' + esc(label(cfg, 'hr_organization', ctx.hr_organization)) + (ctx.hr_organization_other ? ' (' + esc(ctx.hr_organization_other) + ')' : '') +
       (ctx.collective_agreement_label ? ' · Convention collective : ' + esc(ctx.collective_agreement_label) + (ctx.collective_agreement_idcc ? ' (IDCC ' + esc(ctx.collective_agreement_idcc) + ')' : '') : '') +
       ' · ' + res.questions_count + ' questions.');
 

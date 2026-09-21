@@ -121,7 +121,10 @@
   function renderContext() {
     var fields = ctxSteps(), f = fields[S.ctxIndex], val = S.context[f.id];
     var isSearch = f.type === 'ccn_search';
-    var done = isSearch ? !!S.context.collective_agreement_known : !!val;
+    var picked = !isSearch && f.options ? f.options.filter(function (o) { return o.id === val; })[0] : null;
+    var detail = picked && picked.detail;
+    var done = isSearch ? !!S.context.collective_agreement_known
+      : !!val && !(detail && detail.required && !(S.context[detail.id] || '').trim());
     return '<section class="arh-screen arh-card">' +
       '<div class="arh-top"><span class="arh-step-label">Votre contexte</span><span class="arh-count">' + (S.ctxIndex + 1) + ' / ' + fields.length + '</span></div>' +
       '<div class="arh-progress" aria-hidden="true"><span style="width:' + Math.round(S.ctxIndex / fields.length * 100) + '%"></span></div>' +
@@ -129,6 +132,9 @@
       (isSearch ? '<p class="arh-muted" style="margin:6px 0 0">' + esc(f.help_text) + '</p>'
         : (f.help_text ? '<p class="arh-tip" id="arh-tip" hidden>' + esc(f.help_text) + '</p>' : '')) +
       (isSearch ? renderCcnSearch(f) : optionsHtml(f.options, val)) +
+      (detail ? '<div class="arh-detail"><label for="arh-detail">' + esc(detail.label) + '</label>' +
+        '<input id="arh-detail" class="arh-input" type="text" autocomplete="off" maxlength="' + (detail.maxlength || 120) + '"' +
+        ' data-detail="' + esc(detail.id) + '" placeholder="' + esc(detail.placeholder || '') + '" value="' + esc(S.context[detail.id] || '') + '"></div>' : '') +
       '<div class="arh-nav"><button class="arh-btn arh-btn-ghost" data-act="back">← Précédent</button>' +
       '<button class="arh-btn ' + (isSearch ? '' : 'arh-btn-secondary') + '" data-act="ctx-next"' + (done ? '' : ' disabled') + '>' + (isSearch ? 'Continuer' : 'Suivant') + ' →</button></div>' +
       '</section>';
@@ -240,7 +246,7 @@
       (res.very_good || !nAreas ? '' : '<span class="arh-chip"><b>' + nAreas + '</b> ' + (nAreas > 1 ? 'axes à structurer' : 'axe à structurer') + '</span>') +
       (res.strengths.length ? '<span class="arh-chip"><b>' + res.strengths.length + '</b> ' + (res.strengths_fallback ? (res.strengths.length > 1 ? 'points d\'appui' : 'point d\'appui') : (res.strengths.length > 1 ? 'points forts' : 'point fort')) + '</span>' : '') +
       (res.vigilance_count ? '<span class="arh-chip"><b>' + res.vigilance_count + '</b> « Je ne sais pas »</span>' : '') + '</div>';
-    h += '<p class="arh-context-line">' + esc([ctxLabel('company_size', S.context.company_size), ctxLabel('hr_organization', S.context.hr_organization), res.questions_count + ' questions'].filter(Boolean).join(' · ')) + '</p>';
+    h += '<p class="arh-context-line">' + esc([ctxLabel('company_size', S.context.company_size), (S.context.hr_organization === 'other' && S.context.hr_organization_other ? S.context.hr_organization_other : ctxLabel('hr_organization', S.context.hr_organization)), res.questions_count + ' questions'].filter(Boolean).join(' · ')) + '</p>';
     h += '</section>';
 
     /* Bloc 2 — sujets à sécuriser */
@@ -400,13 +406,25 @@
   }
   function answerContext(val) {
     var f = ctxSteps()[S.ctxIndex];
+    var opt = (f.options || []).filter(function (o) { return o.id === val; })[0];
+    (f.options || []).forEach(function (o) { if (o.detail && o.id !== val) delete S.context[o.detail.id]; });   // détail d'une autre option
     S.context[f.id] = val;
+    if (opt && opt.detail) {   // champ à préciser : pas d'avance automatique
+      save(); render();
+      var d = view.querySelector('#arh-detail'); if (d) d.focus();
+      return;
+    }
     save(); markPressed(val);
     setTimeout(ctxNext, R.ui.auto_advance_ms);
   }
   function ctxNext() {
     var steps = ctxSteps(), f = steps[S.ctxIndex];
     if (f.type === 'ccn_search' ? !S.context.collective_agreement_known : (f.required && !S.context[f.id])) return;
+    var od = (f.options || []).filter(function (o) { return o.id === S.context[f.id]; })[0];
+    if (od && od.detail) {
+      var di = view.querySelector('#arh-detail'); if (di) S.context[od.detail.id] = di.value.trim();
+      if (od.detail.required && !S.context[od.detail.id]) { if (di) di.focus(); return; }
+    }
     if (S.ctxIndex < steps.length - 1) return go('context', { ctxIndex: S.ctxIndex + 1 });
     track('context_completed', { hr_organization: S.context.hr_organization, respondent_role: S.context.respondent_role }, true);
     go('question', { qIndex: 0 });
@@ -524,8 +542,13 @@
   });
   mount.addEventListener('input', function (e) {
     if (e.target.id === 'arh-ccn') { ccnQuery = e.target.value; updateCcnResults(); }
+    if (e.target.id === 'arh-detail') {
+      S.context[e.target.getAttribute('data-detail')] = e.target.value;
+      var nb = view.querySelector('[data-act="ctx-next"]'); if (nb) nb.disabled = !e.target.value.trim();
+    }
   });
   mount.addEventListener('keydown', function (e) {
+    if (e.target.id === 'arh-detail' && e.key === 'Enter') { e.preventDefault(); ctxNext(); }
     if (e.target.id === 'arh-ccn') {
       if (e.key === 'ArrowDown') { e.preventDefault(); moveCcn(1); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); moveCcn(-1); }
