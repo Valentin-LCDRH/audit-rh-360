@@ -136,8 +136,9 @@
         unknown: 'Vous ne savez pas si ce point est en place. Il mérite d\'être vérifié en priorité.'
       },
       areas_title: { one: '1 axe à structurer', many: '{n} axes à structurer' },
+      vigilance_title: { one: '1 point à vérifier', many: '{n} points à vérifier' },
       strengths_title: 'Vos points forts',
-      strengths_fallback_title: 'Vos points d\'appui',
+      strengths_fallback_title: 'Vos points forts',
       pillar_not_evaluated: 'Non évalué au regard de votre situation',
       preview: {
         title: 'Vos premières actions',

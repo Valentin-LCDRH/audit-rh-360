@@ -102,7 +102,7 @@
       '<h1 class="arh-h1">' + esc(HERO.title) + '</h1>' +
       '<p class="arh-lead">' + esc(HERO.lead) + '</p>' +
       '<ul class="arh-meta">' + HERO.meta.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') + '</ul>' +
-      '<button class="arh-btn" data-act="start">' + esc(HERO.cta) + ' <span aria-hidden="true">→</span></button>' +
+      '<button class="arh-btn" data-act="start">' + esc(HERO.cta) + '</button>' +
       (s && (answered || s.step !== 'intro') ? '<div class="arh-resume"><span>Vous avez un audit en cours' + (answered ? ' (' + answered + ' réponses)' : '') + '.</span>' +
         '<button class="arh-link" data-act="resume">Reprendre mon audit</button></div>' : '') +
       '<ul class="arh-pillars-preview" aria-label="Les 8 piliers évalués">' + BASE.Q.PILLARS.map(function (p) { return '<li>' + esc(p.label) + '</li>'; }).join('') + '</ul>' +
@@ -135,8 +135,8 @@
       (detail ? '<div class="arh-detail"><label for="arh-detail">' + esc(detail.label) + '</label>' +
         '<input id="arh-detail" class="arh-input" type="text" autocomplete="off" maxlength="' + (detail.maxlength || 120) + '"' +
         ' data-detail="' + esc(detail.id) + '" placeholder="' + esc(detail.placeholder || '') + '" value="' + esc(S.context[detail.id] || '') + '"></div>' : '') +
-      '<div class="arh-nav"><button class="arh-btn arh-btn-ghost" data-act="back">← Précédent</button>' +
-      '<button class="arh-btn ' + (isSearch ? '' : 'arh-btn-secondary') + '" data-act="ctx-next"' + (done ? '' : ' disabled') + '>' + (isSearch ? 'Continuer' : 'Suivant') + ' →</button></div>' +
+      '<div class="arh-nav"><button class="arh-btn arh-btn-ghost" data-act="back">Précédent</button>' +
+      '<button class="arh-btn ' + (isSearch ? '' : 'arh-btn-secondary') + '" data-act="ctx-next"' + (done ? '' : ' disabled') + '>' + (isSearch ? 'Continuer' : 'Suivant') + '</button></div>' +
       '</section>';
   }
 
@@ -206,8 +206,8 @@
       '<div class="arh-qhead"><h2 class="arh-h2">' + esc(q.question) + '</h2>' + tipBtn() + '</div>' +
       '<p class="arh-tip" id="arh-tip" hidden>' + esc(q.help_text) + '</p>' +
       optionsHtml(opts, val, function (o) { return o.id === 'unknown' || o.id === 'na'; }) +
-      '<div class="arh-nav"><button class="arh-btn arh-btn-ghost" data-act="back">← Précédent</button>' +
-      '<button class="arh-btn arh-btn-secondary" data-act="q-next"' + (val ? '' : ' disabled') + '>' + (S.qIndex === qs.length - 1 ? 'Voir mon résultat' : 'Suivant') + ' →</button></div>' +
+      '<div class="arh-nav"><button class="arh-btn arh-btn-ghost" data-act="back">Précédent</button>' +
+      '<button class="arh-btn arh-btn-secondary" data-act="q-next"' + (val ? '' : ' disabled') + '>' + (S.qIndex === qs.length - 1 ? 'Voir mon résultat' : 'Suivant') + '</button></div>' +
       '<p class="arh-small arh-kbd-hint">Astuce : touches 1 à ' + opts.length + ' pour répondre.</p>' +
       '</section>';
   }
@@ -238,49 +238,25 @@
     h += '<span class="arh-eyebrow">Votre diagnostic RH</span>';
     h += '<h2 class="arh-h2" id="arh-res-title" style="margin-top:14px">' + esc(res.very_good ? T.very_good.title : 'Votre diagnostic RH 360°') + '</h2>';
     h += '<div class="arh-score-row"><div class="arh-score" aria-label="Score global ' + g.display_score + ' sur 100">' + g.display_score + '<small>/ 100</small></div>' +
-      '<span class="arh-level arh-lv-' + lv + '">' + esc(g.level_label) + '</span></div>';
-    h += '<div class="arh-gauge" aria-hidden="true"><i style="left:' + g.display_score + '%"></i></div>';
+      '<div class="arh-gauge" aria-hidden="true"><i style="left:' + g.display_score + '%"></i></div></div>';
     h += '<p class="arh-lead" style="margin-top:14px">' + esc(res.very_good ? T.very_good.body : g.text) + '</p>';
-    h += '<div class="arh-summary">' +
-      (res.red_flags.length ? '<span class="arh-chip arh-chip-warn"><b>' + res.red_flags.length + '</b> ' + (res.red_flags.length > 1 ? 'sujets à sécuriser' : 'sujet à sécuriser') + '</span>' : '<span class="arh-chip"><b>0</b> sujet réglementaire à sécuriser</span>') +
-      (res.very_good || !nAreas ? '' : '<span class="arh-chip"><b>' + nAreas + '</b> ' + (nAreas > 1 ? 'axes à structurer' : 'axe à structurer') + '</span>') +
-      (res.strengths.length ? '<span class="arh-chip"><b>' + res.strengths.length + '</b> ' + (res.strengths_fallback ? (res.strengths.length > 1 ? 'points d\'appui' : 'point d\'appui') : (res.strengths.length > 1 ? 'points forts' : 'point fort')) + '</span>' : '') +
-      (res.vigilance_count ? '<span class="arh-chip"><b>' + res.vigilance_count + '</b> « Je ne sais pas »</span>' : '') + '</div>';
     h += '<p class="arh-context-line">' + esc([ctxLabel('company_size', S.context.company_size), (S.context.hr_organization === 'other' && S.context.hr_organization_other ? S.context.hr_organization_other : ctxLabel('hr_organization', S.context.hr_organization)), res.questions_count + ' questions'].filter(Boolean).join(' · ')) + '</p>';
     h += '</section>';
 
-    /* Bloc 2 — sujets à sécuriser */
-    if (res.red_flags.length) {
-      h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' + esc(plural(res.red_flags.length, T.red_flags_title)) + '</h3></div><ul class="arh-items">' +
-        res.red_flags.map(function (a) { return itemHtml({ title: a.subject || a.title, tag: a.status, body: a.description }, 'secure'); }).join('') + '</ul></section>';
-    }
+    /* Bloc 1bis — mini navbar sticky vers les sections (reste visible au scroll) */
+    h += '<nav class="arh-subnav" aria-label="Aller à une section du résultat"><div class="arh-subnav-inner">' +
+      (res.red_flags.length ? '<a href="#arh-sec-red-flags" class="arh-chip arh-chip-warn"><b>' + res.red_flags.length + '</b> ' + (res.red_flags.length > 1 ? 'sujets à sécuriser' : 'sujet à sécuriser') + '</a>' : '<span class="arh-chip"><b>0</b> sujet réglementaire à sécuriser</span>') +
+      (res.very_good || !nAreas ? '' : '<a href="#arh-sec-areas" class="arh-chip"><b>' + nAreas + '</b> ' + (nAreas > 1 ? 'axes à structurer' : 'axe à structurer') + '</a>') +
+      (res.strengths.length ? '<a href="#arh-sec-strengths" class="arh-chip"><b>' + res.strengths.length + '</b> ' + (res.strengths.length > 1 ? 'points forts' : 'point fort') + '</a>' : '') +
+      (res.vigilance_items.length ? '<a href="#arh-sec-vigilance" class="arh-chip"><b>' + res.vigilance_items.length + '</b> à vérifier</a>' : '') +
+      (S.converted ? '<a href="#arh-done" class="arh-chip arh-chip-brand">Votre rapport</a>' : '<a href="#arh-gate" class="arh-chip arh-chip-brand">' + esc(R.lead_form.cta) + '</a>') + '</div></nav>';
 
-    /* Bloc 3 — points forts (en tête si très bon résultat) */
-    var strengthsHtml = res.strengths.length ? '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' +
+    /* Bloc 2 — points forts calculés une fois, utilisés au bloc "points d'appui" plus bas */
+    var strengthsHtml = res.strengths.length ? '<section class="arh-card" id="arh-sec-strengths"><div class="arh-section-head"><h3 class="arh-h3">' +
       esc(res.very_good ? T.very_good.strengths_title : res.strengths_fallback ? T.strengths_fallback_title : T.strengths_title) + '</h3></div><ul class="arh-items">' +
       res.strengths.map(function (s) { return itemHtml({ title: s.label, tag: s.display_score + ' / 100', body: s.text }, 'strength'); }).join('') + '</ul></section>' : '';
-    if (res.very_good) h += strengthsHtml;
 
-    /* Bloc 4 — axes à structurer (jamais inventés : vide si très bon résultat) */
-    var maxA = R.thresholds.max_areas_to_structure;
-    if (res.areas_to_structure.length) {
-      h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' + esc(plural(Math.min(maxA, res.areas_to_structure.length), T.areas_title)) + '</h3></div><ul class="arh-items">' +
-        res.areas_to_structure.slice(0, maxA).map(function (a) { return itemHtml({ title: a.subject || a.title, tag: a.status, body: a.description }); }).join('') + '</ul>' +
-        (res.areas_to_structure.length > maxA ? '<p class="arh-small" style="margin:12px 0 0">+ ' + (res.areas_to_structure.length - maxA) + ' autres dans votre rapport détaillé.</p>' : '') + '</section>';
-    }
-
-    /* Bloc 5 — scores par pilier */
-    h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">Vos scores par pilier</h3></div><ul class="arh-bars">' +
-      res.pillars.map(function (p) {
-        if (!p.evaluated) return '<li class="arh-bar-ne"><div class="arh-bar-top"><b>' + esc(p.label) + '</b><span class="arh-bar-val">Non évalué</span></div><div class="arh-bar-track"></div><div class="arh-bar-sub">' + esc(T.pillar_not_evaluated) + '</div></li>';
-        return '<li><div class="arh-bar-top"><b>' + esc(p.label) + '</b><span class="arh-bar-val">' + p.display_score + '</span></div>' +
-          '<div class="arh-bar-track" role="img" aria-label="' + esc(p.label + ' : ' + p.display_score + ' sur 100, ' + p.level_label) + '"><div class="arh-bar-fill arh-fill-' + p.level + '" style="width:' + Math.max(2, p.display_score) + '%"></div></div>' +
-          '<div class="arh-bar-sub">' + esc(p.level_label) + (p.red_flags_count ? ' · ' + p.red_flags_count + ' à sécuriser' : '') + '</div></li>';
-      }).join('') + '</ul></section>';
-
-    if (!res.very_good) h += strengthsHtml;
-
-    /* Bloc 6 — aperçu de roadmap : jusqu'à 3 vraies priorités, ou pistes d'optimisation si très bon résultat */
+    /* Bloc 3 — premières actions (aperçu de roadmap) */
     var FP = res.free_preview, PV = T.preview;
     if (FP.mode === 'optimisations' && FP.actions.length) {
       h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">' + esc(T.very_good.optimisations_title) + '</h3></div><ul class="arh-items">' +
@@ -295,7 +271,36 @@
         (FP.remaining_count > 0 ? '<div class="arh-locked">' + esc(plural(FP.remaining_count, PV.remaining)) + '</div>' : '') + '</section>';
     }
 
-    /* Bloc 7 — lead gate / post-conversion */
+    /* Bloc 4 — scores par pilier */
+    h += '<section class="arh-card"><div class="arh-section-head"><h3 class="arh-h3">Vos scores par pilier</h3></div><ul class="arh-bars">' +
+      res.pillars.map(function (p) {
+        if (!p.evaluated) return '<li class="arh-bar-ne"><div class="arh-bar-top"><b>' + esc(p.label) + '</b><span class="arh-bar-val">Non évalué</span></div><div class="arh-bar-track"></div><div class="arh-bar-sub">' + esc(T.pillar_not_evaluated) + '</div></li>';
+        return '<li><div class="arh-bar-top"><b>' + esc(p.label) + '</b><span class="arh-bar-val">' + p.display_score + '</span></div>' +
+          '<div class="arh-bar-track" role="img" aria-label="' + esc(p.label + ' : ' + p.display_score + ' sur 100, ' + p.level_label) + '"><div class="arh-bar-fill arh-fill-' + p.level + '" style="width:' + Math.max(2, p.display_score) + '%"></div></div>' +
+          '<div class="arh-bar-sub">' + esc(p.level_label) + (p.red_flags_count ? ' · ' + p.red_flags_count + ' à sécuriser' : '') + '</div></li>';
+      }).join('') + '</ul></section>';
+
+    /* Bloc 5 — différents sujets : sujets à sécuriser puis axes à structurer */
+    if (res.red_flags.length) {
+      h += '<section class="arh-card" id="arh-sec-red-flags"><div class="arh-section-head"><h3 class="arh-h3">' + esc(plural(res.red_flags.length, T.red_flags_title)) + '</h3></div><ul class="arh-items">' +
+        res.red_flags.map(function (a) { return itemHtml({ title: a.subject || a.title, body: a.description }, 'secure'); }).join('') + '</ul></section>';
+    }
+    var maxA = R.thresholds.max_areas_to_structure;
+    if (res.areas_to_structure.length) {
+      h += '<section class="arh-card" id="arh-sec-areas"><div class="arh-section-head"><h3 class="arh-h3">' + esc(plural(Math.min(maxA, res.areas_to_structure.length), T.areas_title)) + '</h3></div><ul class="arh-items">' +
+        res.areas_to_structure.slice(0, maxA).map(function (a) { return itemHtml({ title: a.subject || a.title, body: a.description }); }).join('') + '</ul>' +
+        (res.areas_to_structure.length > maxA ? '<p class="arh-small" style="margin:12px 0 0">+ ' + (res.areas_to_structure.length - maxA) + ' autres dans votre rapport détaillé.</p>' : '') + '</section>';
+    }
+    if (res.vigilance_items.length) {
+      h += '<section class="arh-card" id="arh-sec-vigilance"><div class="arh-section-head"><h3 class="arh-h3">' + esc(plural(res.vigilance_items.length, T.vigilance_title)) + '</h3></div>' +
+        '<p class="arh-muted" style="margin:0 0 14px">' + esc(T.vigilance_note) + '</p><ul class="arh-items">' +
+        res.vigilance_items.map(function (a) { return itemHtml({ title: a.subject || a.title, body: a.description }); }).join('') + '</ul></section>';
+    }
+
+    /* Bloc 6 — points d'appui */
+    h += strengthsHtml;
+
+    /* Bloc 7 — lead gate / post-conversion (formulaire) */
     h += S.converted ? renderConverted() : renderGate(res);
 
     h += '<p class="arh-disclaimer">' + esc(R.disclaimer) + '</p>';

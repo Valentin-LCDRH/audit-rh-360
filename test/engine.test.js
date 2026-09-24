@@ -516,6 +516,29 @@
     eq(CFG.Q.CONTEXT.filter(function (c) { return c.id === 'hr_organization'; })[0].options.map(function (o) { return o.id; }), ['hr_team', 'finance', 'leadership', 'external', 'other']);
   });
 
+  test('« Je ne sais pas » : listés une seule fois, jamais en double avec les autres sections', function () {
+    ['pme_fragile', 'pme_intermediaire', 'tpe_sans_cse', 'pme_metallurgie'].forEach(function (id) {
+      var r = run(id), shown = {};
+      r.red_flags.forEach(function (a) { shown[a.question_id] = true; (a.related_questions || []).forEach(function (q) { shown[q] = true; }); });
+      r.areas_to_structure.slice(0, CFG.R.thresholds.max_areas_to_structure).forEach(function (a) {
+        shown[a.question_id] = true; (a.related_questions || []).forEach(function (q) { shown[q] = true; });
+      });
+      r.vigilance_items.forEach(function (v) { ok(!shown[v.question_id], id + ' : ' + v.question_id + ' affiché deux fois'); });
+      ok(r.vigilance_items.length <= r.vigilance_count, id + ' : au plus autant d\'items que de « Je ne sais pas »');
+      ok(r.vigilance_items.every(function (v) { return r.items.filter(function (it) { return it.question_id === v.question_id; })[0].vigilance; }), id + ' : uniquement des « Je ne sais pas »');
+    });
+    /* Section de repli : vide tant que chaque « Je ne sais pas » est déjà visible ailleurs. */
+    var allUnknown = {}; CFG.Q.QUESTIONS.forEach(function (q) { allUnknown[q.id] = q.type === 'C' ? 'unknown' : 'D'; });
+    var r = E.evaluate({ respondent_role: 'ceo', company_size: '11-49', has_cse: 'yes', hr_organization: 'hr_team' }, allUnknown);
+    ok(r.vigilance_count > 0 && r.vigilance_items.length === 0, 'tous déjà affichés : aucune redite');
+    /* Au-delà des 3 axes affichés, un « Je ne sais pas » non visible ailleurs réapparaît ici. */
+    var many = {}; CFG.Q.QUESTIONS.forEach(function (q) { many[q.id] = q.type === 'C' ? 'yes' : 'B'; });
+    many.Q3 = 'unknown'; many.Q1 = 'unknown';
+    var r2 = E.evaluate({ respondent_role: 'ceo', company_size: '11-49', has_cse: 'yes', hr_organization: 'hr_team' }, many);
+    ok(r2.areas_to_structure.length > CFG.R.thresholds.max_areas_to_structure, 'plus de 3 axes');
+    ok(r2.vigilance_items.length + r2.areas_to_structure.slice(0, 3).filter(function (a2) { return ['Q1', 'Q3'].indexOf(a2.question_id) >= 0; }).length >= 1, 'les « Je ne sais pas » restent visibles quelque part');
+  });
+
   test('Payload : convention collective normalisée et forfait jours', function () {
     var ctx = ccnCtx('1486', { forfait_jours: 'yes' });
     var p = E.buildPayload({ result: E.evaluate(ctx, {}, FJ_ON), context: ctx }, FJ_ON);

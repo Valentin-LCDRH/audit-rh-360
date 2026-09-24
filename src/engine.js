@@ -407,6 +407,22 @@
       preview.remaining_count = roadmap.length - preview.actions.length;
     }
 
+    /* ---- 7 bis. « Je ne sais pas » non déjà visibles ailleurs (ni red flag, ni axe affiché) ----
+     * Un « Je ne sais pas » compte toujours dans vigilance_count, mais n'est listé ici que s'il
+     * n'apparaît nulle part ailleurs à l'écran : jamais deux fois le même sujet. */
+    var shownQids = {};
+    function markShown(a) { if (a.question_id) shownQids[a.question_id] = true; (a.related_questions || []).forEach(function (qid) { shownQids[qid] = true; }); }
+    redFlags.forEach(markShown);
+    areas.slice(0, T.max_areas_to_structure).forEach(markShown);
+    var vigilanceItems = items.filter(function (it) { return it.vigilance && !shownQids[it.question_id]; })
+      .map(function (it) {
+        return {
+          question_id: it.question_id, pillar: it.pillar, pillar_label: PB[it.pillar].label,
+          title: it.q.action_title || it.short_label, subject: it.short_label,
+          description: it.q.area_text || null
+        };
+      });
+
     var result = {
       method_version: R.method_version,
       config_version: cfg.Q.version, legal_rules_version: cfg.L.version,
@@ -425,6 +441,7 @@
       free_preview: preview,
       very_good: veryGood,
       vigilance_count: items.filter(function (it) { return it.vigilance; }).length,
+      vigilance_items: vigilanceItems,
       lowest_pillar: ev.length ? ev.filter(function (p) { return p.rank_from_bottom === 1; })[0].id : null
     };
     var lead = leadInterest(result, ctx, cfg);
