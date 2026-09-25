@@ -156,6 +156,9 @@
 .arh-subnav-inner { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px; scrollbar-width: thin; }
 .arh-subnav-inner::-webkit-scrollbar { height: 4px; }
 .arh-subnav-inner .arh-chip { flex: 0 0 auto; }
+/* Le bouton reste visible même quand les chips défilent horizontalement (mobile). */
+a.arh-chip-brand { position: sticky; right: 0; }
+.arh-subnav-inner a.arh-chip-brand::before { content: ""; position: absolute; top: -12px; bottom: -12px; left: -14px; width: 14px; background: linear-gradient(90deg, rgba(254, 252, 255, 0), var(--arh-bg)); pointer-events: none; }
 .arh-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--arh-line); font-size: 14px; color: var(--arh-ink-2); background: var(--arh-white); }
 .arh-chip b { color: var(--arh-ink); }
 a.arh-chip { text-decoration: none; cursor: pointer; transition: background .15s var(--arh-ease), border-color .15s var(--arh-ease); }

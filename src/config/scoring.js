@@ -138,7 +138,7 @@
       areas_title: { one: '1 axe à structurer', many: '{n} axes à structurer' },
       vigilance_title: { one: '1 point à vérifier', many: '{n} points à vérifier' },
       strengths_title: 'Vos points forts',
-      strengths_fallback_title: 'Vos points forts',
+      strengths_fallback_title: 'Vos points d\'appui',   // piliers >= 67 sans pilier >= 80 : nuance conservée
       pillar_not_evaluated: 'Non évalué au regard de votre situation',
       preview: {
         title: 'Vos premières actions',

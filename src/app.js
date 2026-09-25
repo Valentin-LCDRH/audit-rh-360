@@ -256,6 +256,9 @@
       esc(res.very_good ? T.very_good.strengths_title : res.strengths_fallback ? T.strengths_fallback_title : T.strengths_title) + '</h3></div><ul class="arh-items">' +
       res.strengths.map(function (s) { return itemHtml({ title: s.label, tag: s.display_score + ' / 100', body: s.text }, 'strength'); }).join('') + '</ul></section>' : '';
 
+    /* Cas « très bon résultat » : les points forts passent en tête (règle produit validée). */
+    if (res.very_good) h += strengthsHtml;
+
     /* Bloc 3 — premières actions (aperçu de roadmap) */
     var FP = res.free_preview, PV = T.preview;
     if (FP.mode === 'optimisations' && FP.actions.length) {
@@ -297,8 +300,8 @@
         res.vigilance_items.map(function (a) { return itemHtml({ title: a.subject || a.title, body: a.description }); }).join('') + '</ul></section>';
     }
 
-    /* Bloc 6 — points d'appui */
-    h += strengthsHtml;
+    /* Bloc 6 — points forts (déjà affichés plus haut si le résultat est très bon) */
+    if (!res.very_good) h += strengthsHtml;
 
     /* Bloc 7 — lead gate / post-conversion (formulaire) */
     h += S.converted ? renderConverted() : renderGate(res);
