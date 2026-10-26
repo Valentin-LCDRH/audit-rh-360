@@ -1,6 +1,14 @@
 /*!
  * Audit RH 360° — Le Club des RH
- * Styles encapsulés sous .arh (aucune fuite vers le site Webflow). DA : Encode Sans, #5E17EB, #F19A3E.
+ * Styles encapsulés sous .arh : aucun sélecteur global, aucune fuite vers le site Webflow.
+ * DA : Encode Sans, #5E17EB, #F19A3E.
+ *
+ * Trois variables sont prévues pour l'intégration (à surcharger dans le code de la page Webflow) :
+ *   --arh-font            police du bloc (par défaut Encode Sans)
+ *   --arh-sticky-offset   hauteur de la navbar fixe du site : décale la sous-navigation collante
+ *                         et les ancres du résultat pour qu'elles ne passent pas dessous
+ *   --arh-z               plan de la modale et du panneau de recette (par défaut au-dessus
+ *                         d'une navbar Webflow standard)
  */
 .arh {
   --arh-violet: #5E17EB;
@@ -16,7 +24,7 @@
   --arh-green-50: #E7F5EE;
   --arh-ink: #131214;
   --arh-ink-2: #5E5963;
-  --arh-ink-3: #8E8A92;
+  --arh-ink-3: #6B6672;   /* assombri : 4,7:1 sur blanc (AA pour le petit texte) */
   --arh-line: #E9E4F0;
   --arh-line-2: #DCD5E6;
   --arh-bg: #FEFCFF;
@@ -26,7 +34,8 @@
   --arh-shadow: 0 1px 2px rgba(19, 18, 20, .04), 0 16px 40px -18px rgba(94, 23, 235, .18);
   --arh-ease: cubic-bezier(.2, .7, .2, 1);
 
-  font-family: inherit;
+  /* Police explicite : le bloc ne doit pas dépendre de la police du <body> Webflow. */
+  font-family: var(--arh-font, "Encode Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif);
   color: var(--arh-ink);
   font-size: 16px;
   line-height: 1.5;
@@ -34,12 +43,15 @@
   margin: 0 auto;
   text-align: left;
   -webkit-font-smoothing: antialiased;
+  scroll-margin-top: calc(var(--arh-sticky-offset, 0px) + 16px);
 }
+/* Ancres du résultat : même décalage, pour ne pas atterrir sous la navbar du site. */
+.arh [id^="arh-sec-"], .arh #arh-gate, .arh #arh-done { scroll-margin-top: calc(var(--arh-sticky-offset, 0px) + 16px); }
 .arh *, .arh *::before, .arh *::after { box-sizing: border-box; }
 /* :where() = spécificité nulle : les classes de composants (.arh-btn…) gardent la main. */
 .arh :where(button, input) { font: inherit; color: inherit; }
 .arh [hidden] { display: none !important; }
-.arh-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.arh-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); border: 0; white-space: nowrap; }
 
 /* ---------- Écran ---------- */
 .arh-screen { animation: arh-in .32s var(--arh-ease); }
@@ -152,7 +164,7 @@
 .arh-gauge { position: relative; flex: 1 1 160px; min-width: 120px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, #FBE3C8 0 40%, #FDEBD6 40% 60%, var(--arh-violet-100) 60% 80%, var(--arh-violet-200) 80% 100%); margin: 0; }
 .arh-gauge i { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--arh-violet); border: 3px solid #fff; box-shadow: 0 1px 4px rgba(19, 18, 20, .25); }
 .arh-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.arh-subnav { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 14px); z-index: 20; margin: 18px 0 0; background: var(--arh-bg); border: 1px solid var(--arh-line); border-radius: var(--arh-radius-sm); box-shadow: var(--arh-shadow); overflow: hidden; }
+.arh-subnav { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--arh-sticky-offset, 0px) + 14px); z-index: 20; margin: 18px 0 0; background: var(--arh-bg); border: 1px solid var(--arh-line); border-radius: var(--arh-radius-sm); box-shadow: var(--arh-shadow); overflow: hidden; }
 .arh-subnav-inner { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px; scrollbar-width: thin; }
 .arh-subnav-inner::-webkit-scrollbar { height: 4px; }
 .arh-subnav-inner .arh-chip { flex: 0 0 auto; }
@@ -228,8 +240,8 @@ a.arh-chip-brand:hover { background: var(--arh-violet-700); border-color: var(--
 .arh-actions-row { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: center; padding: 6px 0 10px; }
 
 /* ---------- Outils de test (maquette uniquement) ---------- */
-.arh-dev-toggle { position: fixed; right: 16px; bottom: 16px; z-index: 50; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0; background: var(--arh-ink); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 8px 24px rgba(19, 18, 20, .25); }
-.arh-dev { position: fixed; inset: auto 0 0 0; z-index: 60; max-height: 82vh; overflow: auto; background: #fff; border-top: 1px solid var(--arh-line); box-shadow: 0 -16px 40px rgba(19, 18, 20, .18); padding: 20px 16px 28px; font-size: 14px; }
+.arh-dev-toggle { position: fixed; right: 16px; bottom: 16px; z-index: calc(var(--arh-z, 10000) - 2); min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0; background: var(--arh-ink); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 8px 24px rgba(19, 18, 20, .25); }
+.arh-dev { position: fixed; inset: auto 0 0 0; z-index: calc(var(--arh-z, 10000) - 1); max-height: 82vh; overflow: auto; background: #fff; border-top: 1px solid var(--arh-line); box-shadow: 0 -16px 40px rgba(19, 18, 20, .18); padding: 20px 16px 28px; font-size: 14px; }
 @media (min-width: 900px) { .arh-dev { inset: 16px 16px 16px auto; width: 440px; max-height: none; border: 1px solid var(--arh-line); border-radius: 16px; } }
 .arh-dev h3 { margin: 18px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--arh-ink-3); }
 .arh-dev-head { display: flex; justify-content: space-between; align-items: center; }
@@ -238,7 +250,7 @@ a.arh-chip-brand:hover { background: var(--arh-violet-700); border-color: var(--
 .arh-dev-profiles button:hover { border-color: var(--arh-violet); background: var(--arh-violet-50); }
 .arh-dev label { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; cursor: pointer; }
 .arh-dev pre { background: #F6F4F9; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.45; overflow: auto; max-height: 260px; white-space: pre-wrap; word-break: break-word; margin: 0; }
-.arh-modal { position: fixed; inset: 0; z-index: 70; background: rgba(19, 18, 20, .55); display: grid; place-items: center; padding: 16px; }
+.arh-modal { position: fixed; inset: 0; z-index: var(--arh-z, 10000); background: rgba(19, 18, 20, .55); display: grid; place-items: center; padding: 16px; }
 .arh-modal-box { background: #fff; border-radius: 16px; width: min(720px, 100%); height: min(88vh, 900px); display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
 .arh-modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--arh-line); font-weight: 600; }
 .arh-modal iframe { width: 100%; height: 100%; border: 0; }

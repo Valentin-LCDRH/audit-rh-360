@@ -1,12 +1,15 @@
 /*!
- * Audit RH 360° — INTÉGRATIONS SIMULÉES (Phase 2).
- * Aucun appel réseau : les envois Zapier / Pipedrive / Brevo sont remplacés par des promesses
- * locales qui conservent le payload pour inspection. À remplacer en Phase 5 uniquement.
+ * Audit RH 360° — Le Club des RH
+ * GABARIT DE L'EMAIL DE RAPPORT (« Votre diagnostic RH 360° »).
+ *
+ * Dépendance de PRODUCTION : le HTML produit ici est envoyé au webhook avec le payload, puis
+ * expédié par Brevo. HTML compatible messagerie (tableaux + styles en ligne), transférable
+ * (direction générale, direction financière…).
+ *
+ * Fonction pure : aucun DOM, aucun réseau. Tous les textes viennent de la configuration.
  */
 (function (root) {
   'use strict';
-
-  var log = [];
 
   function esc(t) { return String(t === null || t === undefined ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function label(cfg, field, id) {
@@ -15,16 +18,8 @@
     return o ? o.label : (id || '—');
   }
 
-  /* Envoi simulé : conserve le payload, répond comme le ferait un webhook. */
-  function submitReport(payload, email) {
-    var entry = { at: new Date().toISOString(), target: 'mock:zapier→pipedrive+brevo', payload: payload, email_subject: email && email.subject };
-    log.push(entry);
-    return new Promise(function (resolve) { setTimeout(function () { resolve({ ok: true, mock: true }); }, 700); });
-  }
-
   /* ------------------------------------------------------------------
-   * Email « Votre diagnostic RH 360° » (gabarit Brevo, HTML compatible messagerie :
-   * tableaux + styles en ligne). Utile en lui-même et transférable (DG, DAF…).
+   * Email « Votre diagnostic RH 360° » contenu complet du rapport.
    * ------------------------------------------------------------------ */
   function buildReportEmail(res, payload, cfg, opts) {
     var meetingHref = (opts && opts.meeting_url) || '#';
@@ -106,8 +101,7 @@
     return { subject: 'Votre diagnostic RH 360°', html: h.join('') };
   }
 
-  /* active : intégrations simulées -> l'interface le signale (aucun email réellement envoyé). */
-  var API = { active: true, submitReport: submitReport, buildReportEmail: buildReportEmail, log: log };
-  root.ARH_MOCKS = API;
+  var API = { build: buildReportEmail };
+  root.ARH_REPORT_EMAIL = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
 })(typeof window !== 'undefined' ? window : globalThis);

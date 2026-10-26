@@ -1,38 +1,69 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Audit RH 360° | Le Club des RH</title>
-  <meta name="description" content="Évaluez vos pratiques RH, identifiez vos principales zones de risque et obtenez une roadmap personnalisée de vos priorités.">
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="src/audit.css">
-  <style>
-    /* Page de démo uniquement (dans Webflow, le site fournit la mise en page). */
-    body { margin: 0; background: #FEFCFF; color: #131214; font-family: "Encode Sans", Arial, sans-serif; }
-    .demo-wrap { padding: 24px 16px 96px; }
-    .demo-bar { max-width: 760px; margin: 0 auto 8px; font-size: 13px; color: #8E8A92; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Audit RH 360° — page de recette</title>
+
+<!-- ============================================================
+     PAGE DE RECETTE LOCALE.
+
+     Elle reproduit volontairement l'intégration Webflow, à trois détails près :
+       - les fichiers sont chargés depuis ./dist au lieu de jsDelivr ;
+       - le bloc est monté avec data-arh-env="preprod" (outils de recette, envoi simulé) ;
+       - l'enveloppe (navbar, pied de page) du site Webflow est simulée par une barre fixe,
+         pour vérifier --arh-sticky-offset.
+
+     Lancer : npm run build && npm run serve, puis http://localhost:4173
+     Les blocs à copier dans Webflow sont dans docs/WEBFLOW.md.
+     ============================================================ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="./dist/audit-rh.css">
+
+<style>
+  /* Charte Le Club des RH, thème clair assumé (identique au site). */
+  :root { --page-bg: #FEFCFF; --page-ink: #131214; --page-muted: #6B6672; --page-line: #E9E4F0; --nav-h: 64px; }
+  * { box-sizing: border-box; }
+  html { background: var(--page-bg); }
+  body { margin: 0; background: var(--page-bg); color: var(--page-ink);
+    font-family: "Encode Sans", Arial, Helvetica, sans-serif; font-size: 16px; }
+
+  /* Navbar fixe : reproduit la contrainte du site Webflow. */
+  .nav { position: fixed; inset: 0 0 auto 0; height: var(--nav-h); z-index: 1000;
+    display: flex; align-items: center; gap: 16px; padding: 0 20px;
+    background: #fff; border-bottom: 1px solid var(--page-line); font-size: 14px; }
+  .nav b { color: #5E17EB; }
+  .nav span { color: var(--page-muted); }
+  main { padding: calc(var(--nav-h) + 24px) 16px 96px; }
+
+  /* Surcharges d'intégration : voir docs/WEBFLOW.md › Head. */
+  #arh-audit { --arh-sticky-offset: var(--nav-h); }
+</style>
 </head>
 <body>
-  <main class="demo-wrap">
-        <!-- ===== Point de montage (futur Embed Webflow) ===== -->
-    <!-- Outils de test : ajouter ?test=1 à l'URL (masqués par défaut pour les tests utilisateurs). -->
-    <div id="arh-audit" data-arh-env="preprod"></div>
-  </main>
-  <script src="src/config/legal-rules.js"></script>
-  <script src="src/config/questions.js"></script>
-  <script src="src/config/ccn-modules.js"></script>
-  <script src="src/config/scoring.js"></script>
-  <script src="src/data/ccn-list.js"></script>
-  <script src="src/engine.js"></script>
-  <script src="src/mocks.js"></script>
-  <script src="src/config/integrations.js"></script>
-  <script src="src/integrations.js"></script>
-  <script src="src/profiles.js"></script>
-  <script src="src/app.js"></script>
+
+<div class="nav"><b>Recette — Audit RH 360°</b><span>navbar fixe simulée · envoi simulé, aucun email</span></div>
+
+<main>
+  <div id="arh-audit" data-arh-env="preprod"></div>
+</main>
+
+<!-- Configuration d'environnement : définie AVANT le bundle. Voir src/config/integrations.example.js -->
+<script>
+  window.ARH_INTEGRATIONS_CONFIG = {
+    report_webhook_url: '',        /* vide en recette locale : envoi simulé */
+    report_webhook_mode: 'auto',
+    meeting_path: '',              /* vide : le CTA signale la configuration manquante */
+    analytics: 'dataLayer'
+  };
+</script>
+
+<!-- Bundle lisible (dist/audit-rh.js). En production, Webflow charge dist/audit-rh.min.js. -->
+<script src="./dist/audit-rh.js"></script>
+
 </body>
 </html>

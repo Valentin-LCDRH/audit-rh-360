@@ -1,26 +1,55 @@
 /*!
  * Audit RH 360° — Le Club des RH
- * INTERFACE (maquette Phase 2). Aucun texte métier ici : questions, libellés, seuils et règles
- * viennent de la configuration ; les calculs viennent de engine.js.
- * Ordre de chargement : config/legal-rules.js, config/questions.js, config/scoring.js, engine.js,
- * mocks.js, [profiles.js en mode test], app.js. Point de montage : <div id="arh-audit"></div>.
+ * INTERFACE. Aucun texte métier ici : questions, libellés, seuils et règles viennent de la
+ * configuration ; les calculs viennent de engine.js.
+ *
+ * Point de montage : <div id="arh-audit"></div> (ajouter data-arh-env="preprod" sur une page de
+ * recette). Ordre de chargement garanti par le bundle (scripts/build.js) : configuration, données,
+ * engine.js, report-email.js, integrations.js, dev/profiles.js, app.js.
+ *
+ * Environnement : 'production' par défaut. 'preprod' active les outils de recette et la simulation
+ * d'envoi explicite. Voir docs/WEBFLOW.md.
  */
 (function (root, doc) {
   'use strict';
 
-  var E = root.ARH_ENGINE, M = root.ARH_MOCKS;
+  var E = root.ARH_ENGINE, RE = root.ARH_REPORT_EMAIL, I = root.ARH_INTEGRATIONS;
   var mount = doc.getElementById('arh-audit');
-  if (!mount || !E || !root.ARH_QUESTIONS || !root.ARH_RULES || !root.ARH_LEGAL) {
-    if (root.console) console.error('[ARH] Point de montage ou configuration manquant.');
+  if (!mount) {
+    if (root.console) console.error('[ARH] Point de montage #arh-audit absent de la page.');
+    return;
+  }
+  /* Le script peut être inséré deux fois (code de page + code du site, ou aperçu Webflow) :
+   * la seconde exécution écraserait le parcours en cours et doublerait les écouteurs. */
+  if (mount.getAttribute('data-arh-booted') === 'true') {
+    if (root.console) console.warn('[ARH] Déjà initialisé sur cette page : second chargement ignoré.');
     return;
   }
 
-  /* Environnement : 'production' par défaut (garde-fou juridique actif : règles sans relecture
-   * désactivées). 'preprod' uniquement si la page le déclare (data-arh-env="preprod"). */
+  /* Environnement : 'production' par défaut. 'preprod' uniquement si la page le déclare. */
   var ENV = mount.getAttribute('data-arh-env') === 'preprod' ? 'preprod' : 'production';
-  var BASE = E.withOverrides(E.defaultConfig(), { release: { mode: ENV, require_legal_review: true } }), R = BASE.R;
-  var I = root.ARH_INTEGRATIONS;
-  var DEV = mount.getAttribute('data-arh-dev') === 'true' || /[?&]test=1\b/.test(root.location.search) || /(^|[#&])test\b/.test(root.location.hash);
+
+  /* Un module manquant est une erreur d'intégration : message explicite plutôt qu'un bloc vide. */
+  var MISSING = [['ARH_ENGINE', E], ['ARH_QUESTIONS', root.ARH_QUESTIONS], ['ARH_RULES', root.ARH_RULES],
+    ['ARH_LEGAL', root.ARH_LEGAL], ['ARH_CCN_LIST', root.ARH_CCN_LIST], ['ARH_CCN_MODULES', root.ARH_CCN_MODULES],
+    ['ARH_REPORT_EMAIL', RE], ['ARH_INTEGRATIONS', I]]
+    .filter(function (x) { return !x[1]; }).map(function (x) { return x[0]; });
+  if (MISSING.length) {
+    if (root.console) console.error('[ARH] Modules manquants : ' + MISSING.join(', ') + '. Vérifiez le chargement du bundle.');
+    if (ENV === 'preprod') mount.textContent = 'Audit RH 360° — modules manquants : ' + MISSING.join(', ') + '.';
+    return;
+  }
+  mount.setAttribute('data-arh-booted', 'true');
+  if (!doc.documentElement.getAttribute('lang')) mount.setAttribute('lang', 'fr');   // contenu en français
+
+  /* Garde-fou juridique : piloté par scoring.js (release.require_legal_review), source unique.
+   * À true, toute règle sans `legal_reviewed_at` est désactivée en production (questions ET red flags). */
+  var REQUIRE_REVIEW = (root.ARH_RULES.release || {}).require_legal_review === true;
+  var BASE = E.withOverrides(E.defaultConfig(), { release: { mode: ENV, require_legal_review: REQUIRE_REVIEW } }), R = BASE.R;
+  /* Outils de recette : jamais sur une page de production, même avec ?test=1 (ils exposeraient
+   * le payload CRM et les signaux commerciaux internes). */
+  var DEV = ENV === 'preprod' && (mount.getAttribute('data-arh-dev') === 'true' ||
+    /[?&]test=1\b/.test(root.location.search) || /(^|[#&])test\b/.test(root.location.hash));
   var HERO = R.hero;
 
   /* ================================================================
@@ -109,8 +138,8 @@
       '</section>';
   }
 
-  function optionsHtml(opts, selected, muted) {
-    return '<ul class="arh-options" role="list">' + opts.map(function (o, i) {
+  function optionsHtml(opts, selected, muted, labelledby) {
+    return '<ul class="arh-options" ' + (labelledby ? 'role="group" aria-labelledby="' + labelledby + '"' : 'role="list"') + '>' + opts.map(function (o, i) {
       return '<li><button type="button" class="arh-option' + (muted && muted(o) ? ' arh-option-muted' : '') + '" data-opt="' + esc(o.id) + '" aria-pressed="' + (selected === o.id) + '">' +
         '<span class="arh-radio" aria-hidden="true"></span><span>' + esc(o.label) + '</span><span class="arh-sr"> (touche ' + (i + 1) + ')</span></button></li>';
     }).join('') + '</ul>';
@@ -128,10 +157,10 @@
     return '<section class="arh-screen arh-card">' +
       '<div class="arh-top"><span class="arh-step-label">Votre contexte</span><span class="arh-count">' + (S.ctxIndex + 1) + ' / ' + fields.length + '</span></div>' +
       '<div class="arh-progress" aria-hidden="true"><span style="width:' + Math.round(S.ctxIndex / fields.length * 100) + '%"></span></div>' +
-      '<div class="arh-qhead"><h2 class="arh-h2">' + esc(f.label) + '</h2>' + (f.help_text && !isSearch ? tipBtn() : '') + '</div>' +
+      '<div class="arh-qhead"><h2 class="arh-h2" id="arh-ctx-title">' + esc(f.label) + '</h2>' + (f.help_text && !isSearch ? tipBtn() : '') + '</div>' +
       (isSearch ? '<p class="arh-muted" style="margin:6px 0 0">' + esc(f.help_text) + '</p>'
         : (f.help_text ? '<p class="arh-tip" id="arh-tip" hidden>' + esc(f.help_text) + '</p>' : '')) +
-      (isSearch ? renderCcnSearch(f) : optionsHtml(f.options, val)) +
+      (isSearch ? renderCcnSearch(f) : optionsHtml(f.options, val, null, 'arh-ctx-title')) +
       (detail ? '<div class="arh-detail"><label for="arh-detail">' + esc(detail.label) + '</label>' +
         '<input id="arh-detail" class="arh-input" type="text" autocomplete="off" maxlength="' + (detail.maxlength || 120) + '"' +
         ' data-detail="' + esc(detail.id) + '" placeholder="' + esc(detail.placeholder || '') + '" value="' + esc(S.context[detail.id] || '') + '"></div>' : '') +
@@ -194,7 +223,10 @@
 
   function renderQuestion() {
     var qs = questions(), q = qs[S.qIndex], C = cfg();
-    if (!q) return renderQuestionMissing();
+    if (!q) {
+      if (!qs.length) return renderQuestionEmpty();
+      S.qIndex = 0; q = qs[0];   // index hors bornes (configuration modifiée) : on repart au début
+    }
     var ps = pillarsFor(), pIdx = 0;
     ps.forEach(function (x, i) { if (x.pillar.id === q.pillar) pIdx = i; });
     var val = S.answers[q.id];
@@ -203,15 +235,22 @@
       '<div class="arh-top"><span class="arh-step-label">Pilier ' + (pIdx + 1) + '/' + ps.length + ' — ' + esc(ps[pIdx].pillar.label) + '</span>' +
       '<span class="arh-count">' + (S.qIndex + 1) + ' / ' + qs.length + '</span></div>' +
       '<div class="arh-progress" aria-hidden="true"><span style="width:' + Math.round(S.qIndex / qs.length * 100) + '%"></span></div>' +
-      '<div class="arh-qhead"><h2 class="arh-h2">' + esc(q.question) + '</h2>' + tipBtn() + '</div>' +
+      '<div class="arh-qhead"><h2 class="arh-h2" id="arh-q-title">' + esc(q.question) + '</h2>' + tipBtn() + '</div>' +
       '<p class="arh-tip" id="arh-tip" hidden>' + esc(q.help_text) + '</p>' +
-      optionsHtml(opts, val, function (o) { return o.id === 'unknown' || o.id === 'na'; }) +
+      optionsHtml(opts, val, function (o) { return o.id === 'unknown' || o.id === 'na'; }, 'arh-q-title') +
       '<div class="arh-nav"><button class="arh-btn arh-btn-ghost" data-act="back">Précédent</button>' +
       '<button class="arh-btn arh-btn-secondary" data-act="q-next"' + (val ? '' : ' disabled') + '>' + (S.qIndex === qs.length - 1 ? 'Voir mon résultat' : 'Suivant') + '</button></div>' +
       '<p class="arh-small arh-kbd-hint">Astuce : touches 1 à ' + opts.length + ' pour répondre.</p>' +
       '</section>';
   }
-  function renderQuestionMissing() { S.qIndex = 0; return renderQuestion(); }
+  /* Aucune question applicable (règles désactivées, configuration réduite) : écran explicite. */
+  function renderQuestionEmpty() {
+    return '<section class="arh-screen arh-card"><h2 class="arh-h2">Nous ne pouvons pas établir de diagnostic</h2>' +
+      '<p class="arh-lead" style="margin-top:14px">Aucune question ne s\'applique à la situation décrite. ' +
+      'Vous pouvez revenir en arrière pour ajuster votre contexte, ou nous contacter directement.</p>' +
+      '<div class="arh-nav"><button class="arh-btn arh-btn-ghost" data-act="back">Précédent</button>' +
+      '<button class="arh-btn arh-btn-secondary" data-act="restart">Recommencer l\'audit</button></div></section>';
+  }
 
   /* ---------- Résultat ---------- */
   function itemHtml(a, kind) {
@@ -318,8 +357,19 @@
       (when === 'has_areas' && res.areas_to_structure.length > 0) ||
       (when === 'not_very_good' && !res.very_good) || (when === 'very_good' && res.very_good);
   }
+  /* Production sans webhook configuré : l'envoi n'aboutirait pas. On ne demande donc aucune
+   * coordonnée et on ne promet pas de rapport (collecte sans finalité réalisable). La recette
+   * (preprod) conserve le parcours complet avec envoi simulé. */
+  function renderGateUnavailable() {
+    return '<section class="arh-card arh-gate" id="arh-gate"><h3 class="arh-h3" style="font-size:22px">Votre rapport détaillé</h3>' +
+      '<p class="arh-muted" style="margin:10px 0 0">L\'envoi du rapport détaillé par email n\'est pas encore activé sur cette page. ' +
+      'Vos résultats ci-dessus restent consultables et vous pouvez échanger directement avec un consultant.</p>' +
+      (I.meetingUrl() ? '<p style="margin:18px 0 0"><a class="arh-btn" data-act="meeting" href="' + esc(I.meetingUrl()) + '">' + esc(R.commercial_cta.cta) + ' <span aria-hidden="true">→</span></a></p>' : '') +
+      '</section>';
+  }
   function renderGate(res) {
     var F = R.lead_form;
+    if (ENV === 'production' && I.isMock()) return renderGateUnavailable();
     return '<section class="arh-card arh-gate" id="arh-gate"><h3 class="arh-h3" style="font-size:22px">' + esc(F.title) + '</h3>' +
       '<p class="arh-muted" style="margin:10px 0 6px">' + esc(F.intro) + '</p>' +
       '<ul class="arh-benefits">' + F.benefits.filter(function (b) { return benefitShown(b.when, res); }).map(function (b) { return '<li>' + esc(b.text) + '</li>'; }).join('') + '</ul>' +
@@ -331,7 +381,8 @@
           (err ? '<div class="arh-error" id="arh-e-' + f.id + '">' + esc(err) + '</div>' : '') + '</div>';
       }).join('') +
       (formErrors._send ? '<p class="arh-error arh-full" role="alert">' + esc(formErrors._send) + '</p>' : '') +
-      '<div class="arh-full"><button class="arh-btn" type="submit"' + (sending ? ' disabled' : '') + '>' + (sending ? 'Envoi en cours…' : esc(F.cta)) + '</button>' +
+      '<div class="arh-full"><button class="arh-btn" type="submit"' + (sending ? ' disabled aria-busy="true"' : '') + '>' + (sending ? 'Envoi en cours…' : esc(F.cta)) + '</button>' +
+      (sending ? '<p class="arh-sr" role="status">Envoi de votre rapport en cours…</p>' : '') +
       '<p class="arh-small" style="margin:10px 0 0">' + esc(F.privacy_note) + ' <a class="arh-link" style="font-weight:500" href="' + esc(F.privacy_url) + '" target="_blank" rel="noopener">Politique de confidentialité</a></p></div>' +
       '</form></section>';
   }
@@ -340,12 +391,14 @@
     var C = R.commercial_cta;
     return '<section class="arh-card" id="arh-done"><div class="arh-done-mark"><span aria-hidden="true">✓</span> Votre rapport est en route</div>' +
       '<p class="arh-muted" style="margin:10px 0 0">Il contient le détail de vos réponses, les sujets à sécuriser et votre roadmap RH complète. Vous pouvez le transférer à votre direction.</p>' +
-      (I.isMock() ? '<p class="arh-small" style="margin:10px 0 0">Maquette de test : aucun email n\'est envoyé. <button class="arh-link" data-act="preview-email">Voir l\'aperçu du rapport</button></p>' : '') +
+      (ENV === 'preprod' && I.isMock() ? '<p class="arh-small" style="margin:10px 0 0">Recette : aucun email n\'est réellement envoyé. <button class="arh-link" data-act="preview-email">Voir l\'aperçu du rapport</button></p>' : '') +
       '</section>' +
       '<section class="arh-card arh-cta-block"><h3 class="arh-h3" style="font-size:22px">' + esc(C.title) + '</h3>' +
       '<p class="arh-muted" style="margin:8px 0 0">' + esc(C.text) + '</p>' +
-      '<a class="arh-btn" data-act="meeting" href="' + esc(I.meetingUrl() || '#rendez-vous') + '">' + esc(C.cta) + ' <span aria-hidden="true">→</span></a>' +
-      '<p class="arh-small" data-meeting-note hidden style="color:#CFCAD6;margin:12px 0 0">Maquette : destination du rendez-vous à définir avant la Phase 4/5.</p></section>';
+      (I.meetingUrl() || ENV === 'preprod'
+        ? '<a class="arh-btn" data-act="meeting" href="' + esc(I.meetingUrl() || '#rendez-vous') + '">' + esc(C.cta) + ' <span aria-hidden="true">→</span></a>'
+        : '') +
+      '<p class="arh-small" data-meeting-note hidden style="color:#CFCAD6;margin:12px 0 0">Recette : chemin de la page de rendez-vous non configuré (meeting_path).</p></section>';
   }
 
   /* ================================================================
@@ -478,7 +531,7 @@
     var payload = E.buildPayload({ result: res, context: S.context, contact: contactDraft, utm: UTM,
       meta: { audit_id: S.audit_id, completed_at: S.completed_at || new Date().toISOString(), page_url: root.location.href.split('#')[0],
         metrics: E.metricsSummary(S.metrics) } }, C);
-    var email = M.buildReportEmail(res, payload, C, { meeting_url: I.meetingUrl() });
+    var email = RE.build(res, payload, C, { meeting_url: I.meetingUrl() });
     lastEmail = email; lastPayload = payload;
     sending = true; render();
     I.submitReport(payload, email).then(function (r) {
@@ -493,10 +546,10 @@
   var lastEmail = null, lastPayload = null;
 
   function previewEmail() {
-    if (!lastEmail) return;
+    if (!lastEmail || ENV !== 'preprod') return;
     var m = doc.createElement('div');
     m.className = 'arh-modal';
-    m.innerHTML = '<div class="arh-modal-box" role="dialog" aria-modal="true" aria-label="Aperçu de l\'email"><div class="arh-modal-head"><span>Aperçu : « ' + esc(lastEmail.subject) + ' » (gabarit Brevo, maquette)</span>' +
+    m.innerHTML = '<div class="arh-modal-box" role="dialog" aria-modal="true" aria-label="Aperçu de l\'email"><div class="arh-modal-head"><span>Aperçu : « ' + esc(lastEmail.subject) + ' » (gabarit Brevo, recette)</span>' +
       '<button class="arh-btn arh-btn-ghost" data-close>Fermer</button></div><iframe title="Aperçu de l\'email"></iframe></div>';
     mount.appendChild(m);
     m.querySelector('iframe').srcdoc = '<!doctype html><meta charset="utf-8">' + lastEmail.html;
@@ -570,13 +623,19 @@
   doc.addEventListener('keydown', function (e) {
     if ((S.step !== 'question' && S.step !== 'context') || e.metaKey || e.ctrlKey || e.altKey) return;
     if (S.step === 'context' && ctxSteps()[S.ctxIndex].type === 'ccn_search') return;   // écran multi-actions
-    if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || ''))) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || '')) || e.target.isContentEditable) return;
+    /* La page Webflow contient d'autres contenus : ne pas répondre si le focus est ailleurs
+     * ou si l'audit n'est pas visible (sinon taper « 1 » dans le pied de page répond à une question). */
+    if (!mount.contains(doc.activeElement) && doc.activeElement !== doc.body) return;
+    var box = mount.getBoundingClientRect();
+    if (box.bottom < 0 || box.top > root.innerHeight) return;
     var n = parseInt(e.key, 10);
     if (n >= 1 && n <= 9) { var b = view.querySelectorAll('[data-opt]')[n - 1]; if (b) { e.preventDefault(); b.click(); } }
   });
 
   /* ================================================================
-   * Outils de test (maquette uniquement : data-arh-dev="true" ou ?test=1)
+   * Outils de recette (préproduction uniquement : data-arh-env="preprod" + data-arh-dev="true",
+   * ?test=1 ou #test). Jamais actifs sur une page de production.
    * ================================================================ */
   var devEl = null, devBtn = null;
   function renderDev() {
@@ -585,18 +644,19 @@
       devBtn.className = 'arh-dev-toggle'; devBtn.type = 'button';
       devBtn.addEventListener('click', function () { devOpen = !devOpen; renderDev(); });
       devEl = doc.createElement('aside');
-      devEl.className = 'arh-dev'; devEl.setAttribute('aria-label', 'Outils de test de la maquette');
+      devEl.className = 'arh-dev'; devEl.setAttribute('aria-label', 'Outils de recette');
       devEl.addEventListener('click', onDevClick); devEl.addEventListener('change', onDevChange);
       mount.appendChild(devBtn); mount.appendChild(devEl);
     }
-    devBtn.textContent = devOpen ? 'Fermer les outils' : 'Outils de test';
+    devBtn.textContent = devOpen ? 'Fermer les outils' : 'Outils de recette';
     devEl.hidden = !devOpen;
     if (!devOpen) return;
     var C = cfg(), res = S.context.company_size ? E.evaluate(S.context, S.answers, C) : null;
     var P = root.ARH_PROFILES;
     var payload = lastPayload || (res && res.complete ? E.buildPayload({ result: res, context: S.context, utm: UTM, meta: { audit_id: S.audit_id } }, C) : null);
-    devEl.innerHTML = '<div class="arh-dev-head"><strong>Outils de test — maquette</strong><button class="arh-btn arh-btn-ghost" data-dev="close">Fermer</button></div>' +
-      '<p class="arh-small" style="margin:4px 0 0">Invisible pour l\'utilisateur final. Aucun envoi réel (Zapier, Pipedrive, Brevo mockés).</p>' +
+    devEl.innerHTML = '<div class="arh-dev-head"><strong>Outils de recette — préproduction</strong><button class="arh-btn arh-btn-ghost" data-dev="close">Fermer</button></div>' +
+      '<p class="arh-small" style="margin:4px 0 0">Indisponible sur une page de production.' +
+      (I.isMock() ? ' Envoi du rapport simulé : aucun email ne part.' : ' Webhook configuré : les envois sont RÉELS.') + '</p>' +
       '<h3>Profils préconfigurés</h3><div class="arh-dev-profiles">' + (P ? P.PROFILES.map(function (p, i) {
         return '<button data-dev="profile" data-id="' + p.id + '">' + (i + 1) + '. ' + esc(p.label) + '</button>';
       }).join('') : '<span class="arh-small">profiles.js non chargé</span>') + '</div>' +
@@ -613,7 +673,7 @@
       '<h3>Mesures — audit en cours</h3><pre>' + esc(S.metrics ? JSON.stringify(E.metricsSummary(S.metrics), null, 2) : 'Non mesuré (profil préconfiguré)') + '</pre>' +
       '<h3>Mesures — dernier audit terminé sur ce navigateur</h3><pre>' + esc(lastMetricsText()) + '</pre>' +
       '<h3>Signaux commerciaux (internes)</h3><pre>' + esc(res ? JSON.stringify(res.lead_signals, null, 2) : '—') + '</pre>' +
-      '<h3>Payload CRM ' + (lastPayload ? '(envoyé au mock)' : '(aperçu, sans contact)') + '</h3><pre>' + esc(payload ? JSON.stringify(payload, null, 2) : '—') + '</pre>' +
+      '<h3>Payload CRM ' + (lastPayload ? '(dernier envoi)' : '(aperçu, sans contact)') + '</h3><pre>' + esc(payload ? JSON.stringify(payload, null, 2) : '—') + '</pre>' +
       '<h3>Événements dataLayer</h3><pre>' + esc(devLog.slice(0, 20).join('\n') || '—') + '</pre>' +
       '<h3>UTM retenues</h3><pre>' + esc(JSON.stringify(UTM)) + '</pre>' +
       '<p style="margin-top:16px"><button class="arh-btn arh-btn-secondary" data-dev="reset">Tout réinitialiser</button></p>';

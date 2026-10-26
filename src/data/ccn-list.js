@@ -13,8 +13,9 @@
  * conventions, lien vers la fiche KALI de Légifrance). Intitulés résumés par l'outil de lecture :
  * à re-contrôler au caractère près lors de l'import complet.
  * LISTE COMPLÈTE À IMPORTER : nomenclature officielle « Liste des conventions collectives et de leur
- * code IDCC » (Ministère du Travail, travail-emploi.gouv.fr › Conventions collectives : nomenclatures),
- * via scripts/import-idcc.py (le site officiel est protégé par un CAPTCHA : téléchargement manuel).
+ * code IDCC » (Ministère du Travail, travail-emploi.gouv.fr › Conventions collectives : nomenclatures).
+ * Le site officiel est protégé par un CAPTCHA : téléchargement manuel, procédure dans
+ * docs/CCN-IMPORT.md (aucun script d'import automatique n'est fourni).
  */
 (function (root) {
   'use strict';

@@ -1,0 +1,19 @@
+{
+  "name": "audit-rh-360",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Audit RH 360° — Le Club des RH. Questionnaire de pré-diagnostic RH intégré au site Webflow, servi par jsDelivr.",
+  "scripts": {
+    "validate": "node scripts/validate-config.js",
+    "test": "node scripts/test.js",
+    "build": "node scripts/build.js",
+    "check": "npm run validate && npm run test && npm run build",
+    "serve": "node scripts/serve.js"
+  },
+  "devDependencies": {
+    "terser": "5.44.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

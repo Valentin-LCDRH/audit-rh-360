@@ -24,9 +24,22 @@
     conditions: { fields: ['respondent_role', 'company_size', 'has_cse', 'hr_organization',
       'collective_agreement_idcc', 'collective_agreement_known', 'forfait_jours'] },
 
-    /* Mise en production : une règle réglementaire n'est active (questions ET red flags) que si elle est
-       vérifiée ET relue par un juriste (`legal_reviewed_at`). En maquette, « vérifiée » suffit. */
-    release: { mode: 'prototype', require_legal_review: true },
+    /* ------------------------------------------------------------------
+     * Mise en production — SOURCE UNIQUE du garde-fou juridique (lue par app.js).
+     *
+     * `require_legal_review: true`  : une règle n'est active (questions ET red flags) que si elle est
+     *   'verified' ET porte une date de relecture juridique (`legal_reviewed_at`, legal-rules.js).
+     * `require_legal_review: false` : le statut 'verified' suffit (règle lue sur une source officielle,
+     *   sourcée et datée). Les règles 'legal_validation_required' restent désactivées dans les deux cas.
+     *
+     * Choix retenu pour la V1 : false. À true avec les 16 règles sans `legal_reviewed_at`, 14 des 39
+     * questions disparaîtraient du parcours et aucun red flag ne pourrait se déclencher.
+     * Pour revenir à un contrôle règle par règle : remettre true et renseigner `legal_reviewed_at`
+     * sur les règles effectivement relues.
+     *
+     * `mode` est imposé par la page (data-arh-env) : 'production' par défaut, 'preprod' en recette.
+     * ------------------------------------------------------------------ */
+    release: { mode: 'production', require_legal_review: false },
 
     /* ------------------------------------------------------------------
      * Scoring

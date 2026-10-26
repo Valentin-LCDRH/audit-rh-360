@@ -558,14 +558,23 @@
   function serializeProgress(state, now) {
     return JSON.stringify({ v: 1, saved_at: (now || new Date()).toISOString(), state: state });
   }
+  /* Le contenu vient du navigateur du visiteur : il peut être tronqué, périmé ou modifié.
+   * Un état invalide doit repartir de zéro, jamais faire échouer le rendu. */
+  var STEPS = { intro: 1, context: 1, question: 1, results: 1 };
+  function plain(o) { return !!o && typeof o === 'object' && !Array.isArray(o); }
   function restoreProgress(raw, now, ttlDays) {
     if (!raw) return null;
     var o;
     try { o = JSON.parse(raw); } catch (e) { return null; }
-    if (!o || o.v !== 1 || !o.state || !o.saved_at) return null;
+    if (!o || o.v !== 1 || !plain(o.state) || !o.saved_at) return null;
     var age = ((now || new Date()).getTime() - new Date(o.saved_at).getTime()) / 86400000;
     if (!(age >= 0) || age > (ttlDays || 30)) return null;
-    return o.state;
+    var st = o.state;
+    if (!STEPS[st.step] || !plain(st.context) || !plain(st.answers)) return null;
+    if (typeof st.ctxIndex !== 'number' || st.ctxIndex < 0) st.ctxIndex = 0;
+    if (typeof st.qIndex !== 'number' || st.qIndex < 0) st.qIndex = 0;
+    if (!plain(st.metrics)) st.metrics = null;
+    return st;
   }
   /* Les UTM de l'URL priment ; sinon on garde ceux déjà mémorisés pendant la visite. */
   function resolveUtm(search, storedJson, keys) {

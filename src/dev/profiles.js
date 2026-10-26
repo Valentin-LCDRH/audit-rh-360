@@ -1,5 +1,6 @@
 /*!
- * Audit RH 360° — profils de test (maquette et tests automatisés).
+ * Audit RH 360° — PROFILS DE RECETTE (panneau de test et tests automatisés).
+ * Chargés dans le bundle mais exploitables uniquement sur une page data-arh-env="preprod".
  * Chaque profil = un contexte + une réponse par défaut par type + des réponses ciblées.
  * Les réponses aux questions non posées sont ignorées par le moteur.
  */

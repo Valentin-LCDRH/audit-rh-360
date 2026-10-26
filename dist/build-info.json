@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "built_at": "2026-10-26T11:00:14.904Z",
+  "config_version": "0.2.0",
+  "legal_rules_version": "2026-09-18",
+  "questions_count": 39,
+  "files": {
+    "audit-rh.css": {
+      "bytes": 21698,
+      "sha256_short": "4cd9864f9a1c491f"
+    },
+    "audit-rh.js": {
+      "bytes": 198665,
+      "sha256_short": "57d6a796a8679fde"
+    },
+    "audit-rh.min.js": {
+      "bytes": 132771,
+      "sha256_short": "9e2ced560ec729e0"
+    }
+  }
+}
